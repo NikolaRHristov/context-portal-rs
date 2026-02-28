@@ -41,7 +41,7 @@ pub struct HandleSearchDecisions;
 
 impl HandleSearchDecisions {
     pub async fn Execute(
-        DbState: &Arc<crate::Persistence::Database::Connect>,
+        DbState: &Arc<crate::Persistence::Database::Connect::Connect>,
         Payload: SearchDecisionsRequest,
     ) -> Result<SearchResponse, Error> {
         let _ = DbState; // Suppress unused warning
@@ -50,9 +50,9 @@ impl HandleSearchDecisions {
         let _ = Limit; // Suppress unused warning
 
         // Generate embedding for the query
-        let _Embedding = crate::AI::Embedding::Generate::Execute(&Payload.Query)
+        let _Embedding = crate::AI::Embedding::Generate::Generate::Execute(&Payload.Query)
             .await
-            .map_err(|e: crate::Error::Kind| Error::Embedding(&e.to_string()))?;
+            .map_err(|e: crate::Error::Kind::Kind| Error::WithMessage(crate::HTTP::Protocol::Response::ErrorCode::InternalError, &e.to_string()))?;
 
         // TODO: Query vector store for similar decisions
         // For now, return empty results
@@ -71,7 +71,7 @@ pub struct HandleSearchContext;
 
 impl HandleSearchContext {
     pub async fn Execute(
-        DbState: &Arc<crate::Persistence::Database::Connect>,
+        DbState: &Arc<crate::Persistence::Database::Connect::Connect>,
         Payload: SearchContextRequest,
     ) -> Result<SearchResponse, Error> {
         let _ = DbState; // Suppress unused warning
@@ -80,9 +80,9 @@ impl HandleSearchContext {
         let _ = Limit; // Suppress unused warning
 
         // Generate embedding for the query
-        let _Embedding = crate::AI::Embedding::Generate::Execute(&Payload.Query)
+        let _Embedding = crate::AI::Embedding::Generate::Generate::Execute(&Payload.Query)
             .await
-            .map_err(|e: crate::Error::Kind| Error::Embedding(&e.to_string()))?;
+            .map_err(|e: crate::Error::Kind::Kind| Error::WithMessage(crate::HTTP::Protocol::Response::ErrorCode::InternalError, &e.to_string()))?;
 
         // TODO: Query vector store for similar contexts
         // For now, return empty results

@@ -1,5 +1,5 @@
 // Database migration executor for the ConPort MCP server
-use crate::Error::Kind;
+use crate::Error::Kind::Kind;
 use rusqlite::Connection;
 
 pub struct Execute;

@@ -1,6 +1,6 @@
 // CustomData HTTP handler for the ConPort MCP server
 use crate::HTTP::Protocol::Response::Error;
-use crate::Type::CustomData as CustomDataType;
+use crate::Type::CustomData::CustomData as CustomDataType;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
@@ -43,7 +43,7 @@ pub struct HandleSetCustomData;
 
 impl HandleSetCustomData {
     pub async fn Execute(
-        DbState: &Arc<crate::Persistence::Database::Connect>,
+        DbState: &Arc<crate::Persistence::Database::Connect::Connect>,
         Payload: SetCustomDataRequest,
     ) -> Result<CustomDataResponse, Error> {
         let _ = DbState; // Suppress unused warning
@@ -65,7 +65,7 @@ pub struct HandleGetCustomData;
 
 impl HandleGetCustomData {
     pub async fn Execute(
-        DbState: &Arc<crate::Persistence::Database::Connect>,
+        DbState: &Arc<crate::Persistence::Database::Connect::Connect>,
         ContextId: String,
         Key: String,
     ) -> Result<CustomDataResponse, Error> {
@@ -80,7 +80,7 @@ pub struct HandleDeleteCustomData;
 
 impl HandleDeleteCustomData {
     pub async fn Execute(
-        DbState: &Arc<crate::Persistence::Database::Connect>,
+        DbState: &Arc<crate::Persistence::Database::Connect::Connect>,
         ContextId: String,
         Key: String,
     ) -> Result<(), Error> {

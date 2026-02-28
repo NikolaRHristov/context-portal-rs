@@ -18,34 +18,34 @@ pub struct ContextResponse {
 }
 
 pub async fn List(
-    State(_State): State<Arc<crate::Persistence::Database::Connect>>,
-) -> Result<Json<Vec<ContextResponse>>, crate::Error::Kind> {
+    State(_State): State<Arc<crate::Persistence::Database::Connect::Connect>>,
+) -> Result<Json<Vec<ContextResponse>>, crate::Error::Kind::Kind> {
     // Placeholder - actual implementation would query the database
     Ok(Json(vec![]))
 }
 
 pub async fn Get(
-    State(_State): State<Arc<crate::Persistence::Database::Connect>>,
+    State(_State): State<Arc<crate::Persistence::Database::Connect::Connect>>,
     Path(Id): Path<String>,
-) -> Result<Json<ContextResponse>, crate::Error::Kind> {
+) -> Result<Json<ContextResponse>, crate::Error::Kind::Kind> {
     // Placeholder - actual implementation would query the database
-    Err(crate::Error::Kind::NotFound(format!("Context {} not found", Id)))
+    Err(crate::Error::Kind::Kind::NotFound(format!("Context {} not found", Id)))
 }
 
 pub async fn Create(
-    State(_State): State<Arc<crate::Persistence::Database::Connect>>,
+    State(_State): State<Arc<crate::Persistence::Database::Connect::Connect>>,
     Json(_Payload): Json<CreateContextRequest>,
-) -> Result<Json<ContextResponse>, crate::Error::Kind> {
+) -> Result<Json<ContextResponse>, crate::Error::Kind::Kind> {
     // Placeholder - actual implementation would create in database
     unimplemented!()
 }
 
 pub async fn Delete(
-    State(_State): State<Arc<crate::Persistence::Database::Connect>>,
+    State(_State): State<Arc<crate::Persistence::Database::Connect::Connect>>,
     Path(Id): Path<String>,
-) -> Result<(), crate::Error::Kind> {
+) -> Result<(), crate::Error::Kind::Kind> {
     // Placeholder - actual implementation would delete from database
-    Err(crate::Error::Kind::NotFound(format!("Context {} not found", Id)))
+    Err(crate::Error::Kind::Kind::NotFound(format!("Context {} not found", Id)))
 }
 
 #[derive(Deserialize)]

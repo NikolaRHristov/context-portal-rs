@@ -1,6 +1,6 @@
 // Pattern HTTP handler for the ConPort MCP server
 use crate::HTTP::Protocol::Response::Error;
-use crate::Type::Pattern as PatternType;
+use crate::Type::Pattern::Pattern as PatternType;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
@@ -43,7 +43,7 @@ pub struct HandleCreatePattern;
 
 impl HandleCreatePattern {
     pub async fn Execute(
-        DbState: &Arc<crate::Persistence::Database::Connect>,
+        DbState: &Arc<crate::Persistence::Database::Connect::Connect>,
         Payload: CreatePatternRequest,
     ) -> Result<PatternResponse, Error> {
         let _ = DbState; // Suppress unused warning
@@ -65,7 +65,7 @@ pub struct HandleGetPattern;
 
 impl HandleGetPattern {
     pub async fn Execute(
-        DbState: &Arc<crate::Persistence::Database::Connect>,
+        DbState: &Arc<crate::Persistence::Database::Connect::Connect>,
         Id: String,
     ) -> Result<PatternResponse, Error> {
         let _ = DbState; // Suppress unused warning
@@ -79,7 +79,7 @@ pub struct HandleUpdatePattern;
 
 impl HandleUpdatePattern {
     pub async fn Execute(
-        DbState: &Arc<crate::Persistence::Database::Connect>,
+        DbState: &Arc<crate::Persistence::Database::Connect::Connect>,
         Id: String,
         Payload: UpdatePatternRequest,
     ) -> Result<PatternResponse, Error> {
@@ -94,7 +94,7 @@ pub struct HandleDeletePattern;
 
 impl HandleDeletePattern {
     pub async fn Execute(
-        DbState: &Arc<crate::Persistence::Database::Connect>,
+        DbState: &Arc<crate::Persistence::Database::Connect::Connect>,
         Id: String,
     ) -> Result<(), Error> {
         let _ = DbState; // Suppress unused warning

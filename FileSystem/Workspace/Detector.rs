@@ -1,10 +1,10 @@
 // WorkspaceDetector for the ConPort MCP server
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub struct Detector;
 
 impl Detector {
-    pub fn Detect() -> Result<PathBuf, crate::Error::Kind> {
+    pub fn Detect() -> Result<PathBuf, crate::Error::Kind::Kind> {
         // Check for common workspace indicators
         let Indicators = vec![
             ".git",
@@ -17,7 +17,7 @@ impl Detector {
         ];
 
         let CurrentDir = std::env::current_dir()
-            .map_err(|e| crate::Error::Kind::WorkspaceDetection(e.to_string()))?;
+            .map_err(|e| crate::Error::Kind::Kind::WorkspaceDetection(e.to_string()))?;
 
         // Walk up the directory tree looking for workspace indicators
         let mut Path = CurrentDir.as_path();
@@ -39,7 +39,7 @@ impl Detector {
         Ok(CurrentDir)
     }
 
-    pub fn DetectFromPath(StartPath: &PathBuf) -> Result<PathBuf, crate::Error::Kind> {
+    pub fn DetectFromPath(StartPath: &PathBuf) -> Result<PathBuf, crate::Error::Kind::Kind> {
         let Indicators = vec![
             ".git",
             ".vscode",

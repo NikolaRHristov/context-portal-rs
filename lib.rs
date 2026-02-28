@@ -1,15 +1,9 @@
 // ConPort MCP Server Library
 // Rust rewrite of the Python context-portal-rs project
 
-// Error handling - exposed as Error::Kind::Kind for full path access
+// Error handling
 pub mod Error {
     pub mod Kind;
-    
-    // Provide access to Kind type as Error::Kind
-    #[allow(nonstandard_style)]
-    pub mod Kind_type {
-        pub use super::Kind::Kind;
-    }
 }
 
 // Configuration
@@ -25,6 +19,9 @@ pub mod Type {
     pub mod Progress;
     pub mod Pattern;
     pub mod CustomData;
+    pub mod SystemPattern;
+    pub mod History;
+    pub mod ContextLink;
 }
 
 // AI
@@ -45,6 +42,7 @@ pub mod FileSystem {
 pub mod Persistence {
     pub mod Database {
         pub mod Connect;
+        pub mod Operations;
     }
 
     pub mod Vector {
@@ -77,6 +75,8 @@ pub mod HTTP {
         pub mod Progress;
         pub mod Pattern;
         pub mod CustomData;
+        pub mod CustomDataHandler;
+        pub mod SystemPattern;
         pub mod Search;
     }
 }

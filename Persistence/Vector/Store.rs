@@ -12,9 +12,9 @@ impl Store {
         }
     }
 
-    pub fn Add(&mut self, Id: String, Embedding: Vec<f32>) -> Result<(), crate::Error::Kind> {
-        if Embedding.len() != crate::AI::Embedding::Generate::Dimension() {
-            return Err(crate::Error::Kind::VectorStore(
+    pub fn Add(&mut self, Id: String, Embedding: Vec<f32>) -> Result<(), crate::Error::Kind::Kind> {
+        if Embedding.len() != crate::AI::Embedding::Generate::Generate::Dimension() {
+            return Err(crate::Error::Kind::Kind::VectorStore(
                 "Embedding dimension mismatch".to_string(),
             ));
         }
@@ -23,15 +23,15 @@ impl Store {
         Ok(())
     }
 
-    pub fn Get(&self, Id: &str) -> Result<&Vec<f32>, crate::Error::Kind> {
+    pub fn Get(&self, Id: &str) -> Result<&Vec<f32>, crate::Error::Kind::Kind> {
         self.Embeddings
             .get(Id)
-            .ok_or_else(|| crate::Error::Kind::NotFound(format!("Embedding {} not found", Id)))
+            .ok_or_else(|| crate::Error::Kind::Kind::NotFound(format!("Embedding {} not found", Id)))
     }
 
-    pub fn Search(&self, Query: &[f32], Limit: usize) -> Result<Vec<(String, f32)>, crate::Error::Kind> {
-        if Query.len() != crate::AI::Embedding::Generate::Dimension() {
-            return Err(crate::Error::Kind::VectorStore(
+    pub fn Search(&self, Query: &[f32], Limit: usize) -> Result<Vec<(String, f32)>, crate::Error::Kind::Kind> {
+        if Query.len() != crate::AI::Embedding::Generate::Generate::Dimension() {
+            return Err(crate::Error::Kind::Kind::VectorStore(
                 "Query dimension mismatch".to_string(),
             ));
         }
