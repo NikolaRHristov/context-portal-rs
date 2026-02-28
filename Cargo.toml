@@ -1,0 +1,33 @@
+[package]
+name = "context-portal-rs"
+version = "0.1.0"
+edition = "2021"
+description = "ConPort MCP Server - Rust rewrite"
+authors = ["Nikola Hristov"]
+license = "MIT"
+
+[dependencies]
+tokio = { version = "1.35", features = ["full"] }
+axum = "0.7"
+rusqlite = { version = "0.31", features = ["bundled"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+clap = { version = "4.4", features = ["derive"] }
+chrono = { version = "0.4", features = ["serde"] }
+dirs = "5.0"
+
+[lib]
+name = "context_portal_rs"
+path = "lib.rs"
+
+[[bin]]
+name = "conport-mcp"
+path = "main.rs"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
