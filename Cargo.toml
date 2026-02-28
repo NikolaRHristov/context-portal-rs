@@ -20,6 +20,22 @@ chrono = { version = "0.4", features = ["serde"] }
 dirs = "5.0"
 uuid = { version = "1.6", features = ["v4", "serde"] }
 
+# ONNX Runtime for embeddings
+ort = "2.0.0-rc.11"
+
+# Tokenizers for text preprocessing
+tokenizers = "0.15"
+
+# USearch for vector similarity search
+usearch = "0.10"
+
+# Async runtime utilities
+once_cell = "1.19"
+parking_lot = "0.12"
+
+# YAML serialization
+serde_yaml = "0.9"
+
 [lib]
 name = "context_portal_rs"
 path = "lib.rs"
