@@ -1,4 +1,9 @@
 // Pattern HTTP handler for the ConPort MCP server
+use axum::{
+    extract::State,
+    extract::Path,
+    Json,
+};
 use crate::HTTP::Protocol::Response::Error;
 use crate::Type::Pattern::Pattern as PatternType;
 use serde::{Deserialize, Serialize};
