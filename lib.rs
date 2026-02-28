@@ -4,13 +4,15 @@
 // Error handling
 pub mod Error {
 pub mod Kind;
+pub mod Context;
 }
 
 // Configuration
 pub mod Configuration {
-    pub mod CLI;
-    pub mod DatabasePath;
-    pub mod Environment;
+pub mod CLI;
+pub mod DatabasePath;
+pub mod Environment;
+pub mod Logging;
 }
 
 // Type definitions
@@ -24,6 +26,9 @@ pub mod Type {
     pub mod History;
     pub mod ContextLink;
     pub mod Filter;
+    pub mod Coerce;
+    pub mod IntCoercion;
+    pub mod Schema;
 }
 
 // AI
