@@ -17,10 +17,10 @@ impl DatabasePath {
         Self { Path }
     }
 
-    pub fn EnsureDirectory(&self) -> Result<(), crate::Error::Kind> {
+    pub fn EnsureDirectory(&self) -> Result<(), crate::Error::Kind_type::Kind> {
         if let Some(Parent) = self.Path.parent() {
             std::fs::create_dir_all(Parent)
-                .map_err(|e| crate::Error::Kind::Configuration(e.to_string()))
+            .map_err(|e| crate::Error::Kind_type::Kind::Configuration(e.to_string()))
         } else {
             Ok(())
         }

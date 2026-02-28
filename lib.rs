@@ -1,16 +1,21 @@
 // ConPort MCP Server Library
 // Rust rewrite of the Python context-portal-rs project
 
-// Error handling
+// Error handling - exposed as Error::Kind::Kind for full path access
 pub mod Error {
     pub mod Kind;
-    pub use Kind::Kind;
+    
+    // Provide access to Kind type as Error::Kind
+    #[allow(nonstandard_style)]
+    pub mod Kind_type {
+        pub use super::Kind::Kind;
+    }
 }
 
 // Configuration
 pub mod Configuration {
+    pub mod CLI;
     pub mod DatabasePath;
-    pub use DatabasePath::DatabasePath;
 }
 
 // Type definitions
@@ -20,19 +25,12 @@ pub mod Type {
     pub mod Progress;
     pub mod Pattern;
     pub mod CustomData;
-
-    pub use Context::Context;
-    pub use Decision::Decision;
-    pub use Progress::Progress;
-    pub use Pattern::Pattern;
-    pub use CustomData::CustomData;
 }
 
 // AI
 pub mod AI {
     pub mod Embedding {
         pub mod Generate;
-        pub use Generate::Generate;
     }
 }
 
@@ -40,7 +38,6 @@ pub mod AI {
 pub mod FileSystem {
     pub mod Workspace {
         pub mod Detector;
-        pub use Detector::Detector;
     }
 }
 
@@ -48,12 +45,14 @@ pub mod FileSystem {
 pub mod Persistence {
     pub mod Database {
         pub mod Connect;
-        pub use Connect::Connect;
     }
 
     pub mod Vector {
         pub mod Store;
-        pub use Store::Store;
+    }
+
+    pub mod Migration {
+        pub mod Execute;
     }
 }
 
@@ -61,19 +60,23 @@ pub mod Persistence {
 pub mod HTTP {
     pub mod Application {
         pub mod Create;
-        pub use Create::Create;
+    }
+
+    pub mod Protocol {
+        pub mod Request;
+        pub mod Response;
+    }
+
+    pub mod Transport {
+        pub mod Stdio;
     }
 
     pub mod Handler {
         pub mod Context;
         pub mod Decision;
         pub mod Progress;
-
-        pub use Context::*;
-        pub use Decision::*;
-        pub use Progress::*;
+        pub mod Pattern;
+        pub mod CustomData;
+        pub mod Search;
     }
 }
-
-// Re-export Error type for convenience
-pub type Error = Kind;

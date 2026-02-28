@@ -73,7 +73,7 @@ impl Connect {
                 FOREIGN KEY (ContextId) REFERENCES Contexts(Id)
             );
             "
-        ).map_err(|e| crate::Error::Kind::Database(e.to_string()))?;
+        ).map_err(|e: rusqlite::Error| crate::Error::Kind::Database(e.to_string()))?;
 
         Ok(())
     }
