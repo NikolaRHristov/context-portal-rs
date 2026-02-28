@@ -8,20 +8,22 @@ pub mod Kind;
 
 // Configuration
 pub mod Configuration {
-pub mod CLI;
-pub mod DatabasePath;
+    pub mod CLI;
+    pub mod DatabasePath;
+    pub mod Environment;
 }
 
 // Type definitions
 pub mod Type {
-pub mod Context;
-pub mod Decision;
-pub mod Progress;
-pub mod Pattern;
-pub mod CustomData;
-pub mod SystemPattern;
-pub mod History;
-pub mod ContextLink;
+    pub mod Context;
+    pub mod Decision;
+    pub mod Progress;
+    pub mod Pattern;
+    pub mod CustomData;
+    pub mod SystemPattern;
+    pub mod History;
+    pub mod ContextLink;
+    pub mod Filter;
 }
 
 // AI
@@ -34,30 +36,40 @@ pub mod Model;
 
 // FileSystem
 pub mod FileSystem {
-pub mod Workspace {
-pub mod Detector;
-}
+    pub mod Workspace {
+        pub mod Detector;
+    }
+    
+    pub mod Markdown {
+        pub mod Export;
+        pub mod Import;
+    }
 }
 
 // Persistence
 pub mod Persistence {
-pub mod Database {
-pub mod Connect;
-pub mod Operations;
-}
+    pub mod Database {
+        pub mod Connect;
+        pub mod Operations;
+    }
 
-pub mod Vector {
-pub mod Store;
-pub mod Usearch;
-}
+    pub mod Vector {
+        pub mod Store;
+        pub mod Usearch;
+    }
 
-pub mod Migration {
-pub mod Execute;
-}
+    pub mod Migration {
+        pub mod Execute;
+    }
 
-pub mod Workspace {
-pub mod Manager;
-}
+    pub mod Workspace {
+        pub mod Manager;
+    }
+    
+    pub mod Query {
+        pub mod Normalize;
+        pub mod Filter;
+    }
 }
 
 // HTTP
