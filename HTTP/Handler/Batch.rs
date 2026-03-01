@@ -375,9 +375,9 @@ impl HandleBatchLogItemsToDatabase {
 		})
 	}
 
-	/// Store a single item based on its type
+	/// Store a single item based on type
 	fn StoreItem(
-		conn:&rusqlite::Mutex<rusqlite::Connection>,
+	    conn:&std::sync::Mutex<rusqlite::Connection>,
 		WorkspaceId:&str,
 		timestamp:&str,
 		Item:&BatchItem,
@@ -393,7 +393,7 @@ impl HandleBatchLogItemsToDatabase {
 
 	/// Store a decision item
 	fn StoreDecision(
-		conn:&rusqlite::Mutex<rusqlite::Connection>,
+	    conn:&std::sync::Mutex<rusqlite::Connection>,
 		WorkspaceId:&str,
 		timestamp:&str,
 		Data:&serde_json::Value,
@@ -430,7 +430,7 @@ impl HandleBatchLogItemsToDatabase {
 
 	/// Store a progress entry
 	fn StoreProgressEntry(
-		conn:&rusqlite::Mutex<rusqlite::Connection>,
+	    conn:&std::sync::Mutex<rusqlite::Connection>,
 		WorkspaceId:&str,
 		timestamp:&str,
 		Data:&serde_json::Value,
@@ -458,7 +458,7 @@ impl HandleBatchLogItemsToDatabase {
 
 	/// Store a system pattern
 	fn StoreSystemPattern(
-		conn:&rusqlite::Mutex<rusqlite::Connection>,
+	    conn:&std::sync::Mutex<rusqlite::Connection>,
 		WorkspaceId:&str,
 		timestamp:&str,
 		Data:&serde_json::Value,
@@ -486,7 +486,7 @@ impl HandleBatchLogItemsToDatabase {
 
 	/// Store custom data
 	fn StoreCustomData(
-		conn:&rusqlite::Mutex<rusqlite::Connection>,
+	    conn:&std::sync::Mutex<rusqlite::Connection>,
 		WorkspaceId:&str,
 		timestamp:&str,
 		Data:&serde_json::Value,

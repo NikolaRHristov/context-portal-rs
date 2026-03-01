@@ -1,35 +1,34 @@
 // DatabaseConnect for the ConPort MCP server
+use std::{path::PathBuf, sync::Mutex};
+
 use rusqlite::Connection;
-use std::path::PathBuf;
-use std::sync::Mutex;
 
 /// Database connection manager for the ConPort MCP server
 pub struct Connect {
-    pub Connection: Mutex<Connection>,
+	pub Connection:Mutex<Connection>,
 }
 
 impl Connect {
-    /// Create a new database connection and initialize the schema
-    pub fn New(Path: &PathBuf) -> Result<Self, crate::Error::Kind::Kind> {
-        let Connection = Connection::open(Path)
-            .map_err(|e| crate::Error::Kind::Kind::Database(e.to_string()))?;
+	/// Create a new database connection and initialize the schema
+	pub fn New(Path:&PathBuf) -> Result<Self, crate::Error::Kind::Kind> {
+		let Connection = Connection::open(Path).map_err(|e| crate::Error::Kind::Kind::Database(e.to_string()))?;
 
-        let Conn = Self {
-            Connection: Mutex::new(Connection),
-        };
+		let Conn = Self { Connection:Mutex::new(Connection) };
 
-        Conn.InitializeSchema()?;
+		Conn.InitializeSchema()?;
 
-        Ok(Conn)
-    }
+		Ok(Conn)
+	}
 
-    /// Initialize the database schema with all required tables
-    fn InitializeSchema(&self) -> Result<(), crate::Error::Kind::Kind> {
-        let conn = self.Connection.lock()
-            .map_err(|e| crate::Error::Kind::Kind::Database(e.to_string()))?;
+	/// Initialize the database schema with all required tables
+	fn InitializeSchema(&self) -> Result<(), crate::Error::Kind::Kind> {
+		let conn = self
+			.Connection
+			.lock()
+			.map_err(|e| crate::Error::Kind::Kind::Database(e.to_string()))?;
 
-        conn.execute_batch(
-            "
+		conn.execute_batch(
+			"
             -- ============================================================================
             -- Core Context Tables
             -- ============================================================================
@@ -222,33 +221,35 @@ impl Connect {
             CREATE INDEX IF NOT EXISTS idx_linked_items_workspace ON LinkedItems(WorkspaceId);
             CREATE INDEX IF NOT EXISTS idx_linked_items_source ON LinkedItems(SourceItemType, SourceItemId);
             CREATE INDEX IF NOT EXISTS idx_linked_items_target ON LinkedItems(TargetItemType, TargetItemId);
-            "
-        ).map_err(|e: rusqlite::Error| crate::Error::Kind::Kind::Database(e.to_string()))?;
+            ",
+		)
+		.map_err(|e:rusqlite::Error| crate::Error::Kind::Kind::Database(e.to_string()))?;
 
-        // Initialize FTS5 tables
-        self.InitializeFts5(&conn)?;
+		// Initialize FTS5 tables
+		self.InitializeFts5(&conn)?;
 
-        Ok(())
-    }
+		Ok(())
+	}
 
-    /// Initialize FTS5 virtual tables for full-text search
-    fn InitializeFts5(&self, conn: &Connection) -> Result<(), crate::Error::Kind::Kind> {
-        // Note: FTS5 requires SQLite to be compiled with FTS5 support (bundled version has it)
-        
-        // Create decisions FTS5 table - using content= to reference the actual table
-        // This allows for external content FTS5 which stays in sync via triggers
-        let _ = conn.execute(
-            "CREATE VIRTUAL TABLE IF NOT EXISTS decisions_fts USING fts5(
+	/// Initialize FTS5 virtual tables for full-text search
+	fn InitializeFts5(&self, conn:&Connection) -> Result<(), crate::Error::Kind::Kind> {
+		// Note: FTS5 requires SQLite to be compiled with FTS5 support (bundled version
+		// has it)
+
+		// Create decisions FTS5 table - using content= to reference the actual table
+		// This allows for external content FTS5 which stays in sync via triggers
+		let _ = conn.execute(
+			"CREATE VIRTUAL TABLE IF NOT EXISTS decisions_fts USING fts5(
                 summary, rationale, implementation_details, tags,
                 content='decisions',
                 content_rowid='Id'
             )",
-            [],
-        );
+			[],
+		);
 
-        // Create triggers to keep decisions_fts in sync
-        let _ = conn.execute_batch(
-            "
+		// Create triggers to keep decisions_fts in sync
+		let _ = conn.execute_batch(
+			"
             -- Trigger for decisions INSERT
             CREATE TRIGGER IF NOT EXISTS decisions_after_insert AFTER INSERT ON decisions
             BEGIN
@@ -271,22 +272,22 @@ impl Connect {
                 INSERT INTO decisions_fts (rowid, summary, rationale, implementation_details, tags)
                 VALUES (new.Id, new.Summary, new.Rationale, new.ImplementationDetails, new.Tags);
             END;
-            "
-        );
+            ",
+		);
 
-        // Create custom_data FTS5 table
-        let _ = conn.execute(
-            "CREATE VIRTUAL TABLE IF NOT EXISTS custom_data_fts USING fts5(
+		// Create custom_data FTS5 table
+		let _ = conn.execute(
+			"CREATE VIRTUAL TABLE IF NOT EXISTS custom_data_fts USING fts5(
                 category, key, value_text,
                 content='CustomData',
                 content_rowid='Id'
             )",
-            [],
-        );
+			[],
+		);
 
-        // Create triggers for custom_data FTS
-        let _ = conn.execute_batch(
-            "
+		// Create triggers for custom_data FTS
+		let _ = conn.execute_batch(
+			"
             -- Trigger for custom_data INSERT
             CREATE TRIGGER IF NOT EXISTS custom_data_after_insert AFTER INSERT ON CustomData
             BEGIN
@@ -309,14 +310,12 @@ impl Connect {
                 INSERT INTO custom_data_fts (rowid, category, key, value_text)
                 VALUES (new.Id, new.Category, new.Key, new.Value);
             END;
-            "
-        );
+            ",
+		);
 
-        Ok(())
-    }
+		Ok(())
+	}
 }
 
 /// Helper function to get a timestamp in ISO 8601 format
-pub fn current_timestamp() -> String {
-    chrono::Utc::now().to_rfc3339()
-}
+pub fn current_timestamp() -> String { chrono::Utc::now().to_rfc3339() }
