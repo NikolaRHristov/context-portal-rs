@@ -19,7 +19,7 @@ pub mod item_type {
 /// Main ContextHistory structure for tracking context changes
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ContextHistory {
-    pub Id: String,
+    pub Id: i64,
     pub WorkspaceId: String,
     pub Timestamp: String,
     pub Version: i64,
@@ -35,7 +35,7 @@ impl ContextHistory {
         ChangeSource: Option<String>,
     ) -> Self {
         Self {
-            Id: uuid::Uuid::new_v4().to_string(),
+            Id: 0, // Will be set by database
             WorkspaceId,
             Timestamp: chrono::Utc::now().to_rfc3339(),
             Version,
@@ -44,7 +44,7 @@ impl ContextHistory {
         }
     }
 
-    pub fn with_id(Id: String, WorkspaceId: String, Version: i64, Content: Value, ChangeSource: Option<String>) -> Self {
+    pub fn with_id(Id: i64, WorkspaceId: String, Version: i64, Content: Value, ChangeSource: Option<String>) -> Self {
         Self {
             Id,
             WorkspaceId,
@@ -69,7 +69,7 @@ impl ContextHistory {
 /// HTTP response type for ContextHistory
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HistoryResponse {
-    pub id: String,
+    pub id: i64,
     pub workspace_id: String,
     pub timestamp: String,
     pub version: i64,

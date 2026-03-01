@@ -16,6 +16,10 @@ use crate::Type::History::{ContextHistory, HistoryResponse, GetItemHistoryArgs, 
 use crate::Type::ContextLink::{
     ContextLink, LinkResponse, LinkConportItemsArgs, GetLinkedItemsArgs,
 };
+use crate::Type::Decision::{
+    Decision, DecisionResponse, LogDecisionArgs, GetDecisionsArgs, UpdateDecisionArgs,
+    DeleteDecisionArgs, SearchDecisionsArgs,
+};
 use super::Connect::current_timestamp;
 
 // ============================================================================
@@ -687,6 +691,501 @@ pub fn delete_link(
     ).map_err(|e| e.to_string())?;
     
     Ok(rows > 0)
+}
+
+// ============================================================================
+// Decision Operations
+// ============================================================================
+
+/// Log a new decision
+pub fn log_decision(
+    conn: &Connection,
+    args: &LogDecisionArgs,
+) -> Result<Decision, String> {
+    let timestamp = current_timestamp();
+    let tags_json = args.tags.as_ref()
+        .map(|tags| serde_json::to_string(tags).unwrap_or_default())
+        .unwrap_or_default();
+
+    conn.execute(
+        "INSERT INTO decisions (WorkspaceId, Timestamp, Summary, Rationale, ImplementationDetails, Tags, CreatedAt)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        params![
+            args.workspace_id,
+            timestamp,
+            args.summary,
+            args.rationale,
+            args.implementation_details,
+            tags_json,
+            timestamp,
+        ],
+    ).map_err(|e| e.to_string())?;
+
+    let id = conn.last_insert_rowid();
+
+    Ok(Decision {
+        Id: id,
+        WorkspaceId: args.workspace_id.clone(),
+        Timestamp: timestamp.clone(),
+        Summary: args.summary.clone(),
+        Rationale: args.rationale.clone(),
+        ImplementationDetails: args.implementation_details.clone(),
+        Tags: Some(tags_json),
+        CreatedAt: timestamp,
+    })
+}
+
+/// Get decisions with filters
+pub fn get_decisions(
+    conn: &Connection,
+    workspace_id: &str,
+    args: &GetDecisionsArgs,
+) -> Result<Vec<Decision>, String> {
+    let mut sql = String::from(
+        "SELECT Id, WorkspaceId, Timestamp, Summary, Rationale, ImplementationDetails, Tags, CreatedAt
+         FROM decisions WHERE WorkspaceId = ?1"
+    );
+
+    sql.push_str(" ORDER BY Timestamp DESC");
+
+    if let Some(limit) = args.limit {
+        sql.push_str(&format!(" LIMIT {}", limit));
+    }
+
+    let mut stmt = conn.prepare(&sql).map_err(|e| e.to_string())?;
+    let rows = stmt.query_map(params![workspace_id], |row| {
+        Ok(Decision {
+            Id: row.get(0)?,
+            WorkspaceId: row.get(1)?,
+            Timestamp: row.get(2)?,
+            Summary: row.get(3)?,
+            Rationale: row.get(4)?,
+            ImplementationDetails: row.get(5)?,
+            Tags: row.get(6)?,
+            CreatedAt: row.get(7)?,
+        })
+    }).map_err(|e| e.to_string())?;
+
+    let mut results = Vec::new();
+    for row in rows {
+        results.push(row.map_err(|e| e.to_string())?);
+    }
+
+    Ok(results)
+}
+
+/// Get a single decision by ID
+pub fn get_decision_by_id(
+    conn: &Connection,
+    workspace_id: &str,
+    decision_id: i64,
+) -> Result<Option<Decision>, String> {
+    let mut stmt = conn.prepare(
+        "SELECT Id, WorkspaceId, Timestamp, Summary, Rationale, ImplementationDetails, Tags, CreatedAt
+         FROM decisions WHERE Id = ?1 AND WorkspaceId = ?2"
+    ).map_err(|e| e.to_string())?;
+
+    let mut rows = stmt.query_map(params![decision_id, workspace_id], |row| {
+        Ok(Decision {
+            Id: row.get(0)?,
+            WorkspaceId: row.get(1)?,
+            Timestamp: row.get(2)?,
+            Summary: row.get(3)?,
+            Rationale: row.get(4)?,
+            ImplementationDetails: row.get(5)?,
+            Tags: row.get(6)?,
+            CreatedAt: row.get(7)?,
+        })
+    }).map_err(|e| e.to_string())?;
+
+    // Return the first result if exists
+    if let Some(result) = rows.next() {
+        Ok(Some(result.map_err(|e| e.to_string())?))
+    } else {
+        Ok(None)
+    }
+}
+
+/// Update a decision
+pub fn update_decision(
+    conn: &Connection,
+    workspace_id: &str,
+    args: &UpdateDecisionArgs,
+) -> Result<bool, String> {
+    let mut updates = Vec::new();
+    let mut params_vec: Vec<Box<dyn rusqlite::ToSql>> = vec![Box::new(workspace_id.to_string())];
+
+    if let Some(ref summary) = args.summary {
+        updates.push("Summary = ?");
+        params_vec.push(Box::new(summary.clone()));
+    }
+
+    if let Some(ref rationale) = args.rationale {
+        updates.push("Rationale = ?");
+        params_vec.push(Box::new(rationale.clone()));
+    }
+
+    if let Some(ref implementation_details) = args.implementation_details {
+        updates.push("ImplementationDetails = ?");
+        params_vec.push(Box::new(implementation_details.clone()));
+    }
+
+    if let Some(ref tags) = args.tags {
+        let tags_json = serde_json::to_string(tags).unwrap_or_default();
+        updates.push("Tags = ?");
+        params_vec.push(Box::new(tags_json));
+    }
+
+    if updates.is_empty() {
+        return Ok(false);
+    }
+
+    // Add decision_id to params
+    params_vec.push(Box::new(args.decision_id));
+
+    let sql = format!(
+        "UPDATE decisions SET {} WHERE Id = ? AND WorkspaceId = ?",
+        updates.join(", ")
+    );
+
+    let params_refs: Vec<&dyn rusqlite::ToSql> = params_vec.iter().map(|p| p.as_ref()).collect();
+    let rows = conn.execute(&sql, params_refs.as_slice()).map_err(|e| e.to_string())?;
+
+    Ok(rows > 0)
+}
+
+/// Delete a decision by ID
+pub fn delete_decision(
+    conn: &Connection,
+    workspace_id: &str,
+    decision_id: i64,
+) -> Result<bool, String> {
+    let rows = conn.execute(
+        "DELETE FROM decisions WHERE Id = ? AND WorkspaceId = ?",
+        params![decision_id, workspace_id],
+    ).map_err(|e| e.to_string())?;
+
+    Ok(rows > 0)
+}
+
+/// Search decisions using FTS5
+pub fn search_decisions_fts(
+    conn: &Connection,
+    workspace_id: &str,
+    query_term: &str,
+    tags_filter: Option<&str>,
+    limit: i64,
+) -> Result<Vec<Decision>, String> {
+    let query = format!("\"{}\"", query_term.replace("\"", "\"\""));
+    
+    let sql = "SELECT d.Id, d.WorkspaceId, d.Timestamp, d.Summary, d.Rationale, d.ImplementationDetails, d.Tags, d.CreatedAt
+               FROM decisions d
+               WHERE d.WorkspaceId = ?1
+               AND d.Id IN (
+                   SELECT rowid FROM decisions_fts WHERE decisions_fts MATCH ?2
+               )
+               ORDER BY d.Timestamp DESC
+               LIMIT ?3";
+
+    let mut stmt = conn.prepare(sql).map_err(|e| e.to_string())?;
+    let rows = stmt.query_map(params![workspace_id, query, limit], |row| {
+        Ok(Decision {
+            Id: row.get(0)?,
+            WorkspaceId: row.get(1)?,
+            Timestamp: row.get(2)?,
+            Summary: row.get(3)?,
+            Rationale: row.get(4)?,
+            ImplementationDetails: row.get(5)?,
+            Tags: row.get(6)?,
+            CreatedAt: row.get(7)?,
+        })
+    }).map_err(|e| e.to_string())?;
+
+    let mut results = Vec::new();
+    for row in rows {
+        results.push(row.map_err(|e| e.to_string())?);
+    }
+
+    Ok(results)
+}
+
+// ============================================================================
+// Activity Summary Operations
+// ============================================================================
+
+/// Get recent activity summary - queries all tables for recent items
+pub fn get_recent_activity_summary(
+    conn: &Connection,
+    workspace_id: &str,
+    hours_ago: i64,
+    limit_per_type: i64,
+) -> Result<RecentActivityData, String> {
+    let timestamp_filter = chrono::Utc::now() - chrono::Duration::hours(hours_ago);
+    let timestamp_str = timestamp_filter.to_rfc3339();
+
+    // Get recent product context changes
+    let mut stmt = conn.prepare(
+        "SELECT Id, WorkspaceId, Timestamp, Version, Content, ChangeSource
+         FROM ProductContextHistory
+         WHERE WorkspaceId = ?1 AND Timestamp > ?2
+         ORDER BY Timestamp DESC LIMIT ?3"
+    ).map_err(|e| e.to_string())?;
+
+    let product_context: Vec<RecentContextHistory> = stmt.query_map(params![workspace_id, timestamp_str, limit_per_type], |row| {
+        let content_str: String = row.get(4)?;
+        let content: Value = serde_json::from_str(&content_str).unwrap_or(Value::Null);
+        let id: i64 = row.get(0)?;
+        Ok(RecentContextHistory {
+            Id: id.to_string(),
+            WorkspaceId: row.get(1)?,
+            Timestamp: row.get(2)?,
+            Version: row.get(3)?,
+            Content: content,
+            ChangeSource: row.get(5)?,
+        })
+    }).map_err(|e| e.to_string())?
+    .filter_map(|r| r.ok())
+    .collect();
+
+    // Get recent active context changes
+    let mut stmt = conn.prepare(
+        "SELECT Id, WorkspaceId, Timestamp, Version, Content, ChangeSource
+         FROM ActiveContextHistory
+         WHERE WorkspaceId = ?1 AND Timestamp > ?2
+         ORDER BY Timestamp DESC LIMIT ?3"
+    ).map_err(|e| e.to_string())?;
+
+    let active_context: Vec<RecentContextHistory> = stmt.query_map(params![workspace_id, timestamp_str, limit_per_type], |row| {
+        let content_str: String = row.get(4)?;
+        let content: Value = serde_json::from_str(&content_str).unwrap_or(Value::Null);
+        let id: i64 = row.get(0)?;
+        Ok(RecentContextHistory {
+            Id: id.to_string(),
+            WorkspaceId: row.get(1)?,
+            Timestamp: row.get(2)?,
+            Version: row.get(3)?,
+            Content: content,
+            ChangeSource: row.get(5)?,
+        })
+    }).map_err(|e| e.to_string())?
+    .filter_map(|r| r.ok())
+    .collect();
+
+    // Get recent progress entries
+    let mut stmt = conn.prepare(
+        "SELECT Id, WorkspaceId, Timestamp, Status, Description, ParentId, CreatedAt, UpdatedAt
+         FROM ProgressEntries
+         WHERE WorkspaceId = ?1 AND Timestamp > ?2
+         ORDER BY Timestamp DESC LIMIT ?3"
+    ).map_err(|e| e.to_string())?;
+
+    let progress_entries: Vec<RecentProgress> = stmt.query_map(params![workspace_id, timestamp_str, limit_per_type], |row| {
+        let id: i64 = row.get(0)?;
+        let parent_id: Option<i64> = row.get(5)?;
+        Ok(RecentProgress {
+            Id: id.to_string(),
+            WorkspaceId: row.get(1)?,
+            Timestamp: row.get(2)?,
+            Status: row.get(3)?,
+            Description: row.get(4)?,
+            ParentId: parent_id.map(|p| p.to_string()),
+            CreatedAt: row.get(6)?,
+            UpdatedAt: row.get(7)?,
+        })
+    }).map_err(|e| e.to_string())?
+    .filter_map(|r| r.ok())
+    .collect();
+
+    // Get recent decisions
+    let mut stmt = conn.prepare(
+        "SELECT Id, WorkspaceId, Timestamp, Summary, Rationale, ImplementationDetails, Tags, CreatedAt
+         FROM decisions
+         WHERE WorkspaceId = ?1 AND Timestamp > ?2
+         ORDER BY Timestamp DESC LIMIT ?3"
+    ).map_err(|e| e.to_string())?;
+    
+    let decisions: Vec<RecentDecision> = stmt.query_map(params![workspace_id, timestamp_str, limit_per_type], |row| {
+        let id: i64 = row.get(0)?;
+        Ok(RecentDecision {
+            Id: id.to_string(),
+            WorkspaceId: row.get(1)?,
+            Timestamp: row.get(2)?,
+            Summary: row.get(3)?,
+            Rationale: row.get(4)?,
+            ImplementationDetails: row.get(5)?,
+            Tags: row.get(6)?,
+            CreatedAt: row.get(7)?,
+        })
+    }).map_err(|e| e.to_string())?
+    .filter_map(|r| r.ok())
+    .collect();
+    
+    // Get recent system patterns
+    let mut stmt = conn.prepare(
+        "SELECT Id, WorkspaceId, Timestamp, Name, Description, Tags, CreatedAt
+         FROM SystemPatterns
+         WHERE WorkspaceId = ?1 AND Timestamp > ?2
+         ORDER BY Timestamp DESC LIMIT ?3"
+    ).map_err(|e| e.to_string())?;
+    
+    let system_patterns: Vec<RecentSystemPattern> = stmt.query_map(params![workspace_id, timestamp_str, limit_per_type], |row| {
+        let id: i64 = row.get(0)?;
+        let tags_str: Option<String> = row.get(5)?;
+        let tags: Option<Vec<String>> = tags_str.and_then(|s| serde_json::from_str(&s).ok());
+        Ok(RecentSystemPattern {
+            Id: id.to_string(),
+            WorkspaceId: row.get(1)?,
+            Timestamp: row.get(2)?,
+            Name: row.get(3)?,
+            Description: row.get(4)?,
+            Tags: tags,
+            CreatedAt: row.get(6)?,
+        })
+    }).map_err(|e| e.to_string())?
+    .filter_map(|r| r.ok())
+    .collect();
+    
+    // Get recent custom data
+    let mut stmt = conn.prepare(
+        "SELECT Id, WorkspaceId, Timestamp, Category, Key, Value, CreatedAt
+         FROM CustomData
+         WHERE WorkspaceId = ?1 AND Timestamp > ?2
+         ORDER BY Timestamp DESC LIMIT ?3"
+    ).map_err(|e| e.to_string())?;
+    
+    let custom_data: Vec<RecentCustomData> = stmt.query_map(params![workspace_id, timestamp_str, limit_per_type], |row| {
+        let id: i64 = row.get(0)?;
+        let value_str: String = row.get(5)?;
+        let value: Value = serde_json::from_str(&value_str).unwrap_or(Value::Null);
+        Ok(RecentCustomData {
+            Id: id.to_string(),
+            WorkspaceId: row.get(1)?,
+            Timestamp: row.get(2)?,
+            Category: row.get(3)?,
+            Key: row.get(4)?,
+            Value: value,
+            CreatedAt: row.get(6)?,
+        })
+    }).map_err(|e| e.to_string())?
+    .filter_map(|r| r.ok())
+    .collect();
+    
+    // Get recent context links
+    let mut stmt = conn.prepare(
+        "SELECT Id, WorkspaceId, Timestamp, SourceItemType, SourceItemId, TargetItemType, TargetItemId, RelationshipType, Description
+         FROM ContextLinks
+         WHERE WorkspaceId = ?1 AND Timestamp > ?2
+         ORDER BY Timestamp DESC LIMIT ?3"
+    ).map_err(|e| e.to_string())?;
+    
+    let context_links: Vec<RecentContextLink> = stmt.query_map(params![workspace_id, timestamp_str, limit_per_type], |row| {
+        let id: i64 = row.get(0)?;
+        Ok(RecentContextLink {
+            Id: id.to_string(),
+            WorkspaceId: row.get(1)?,
+            Timestamp: row.get(2)?,
+            SourceItemType: row.get(3)?,
+            SourceItemId: row.get(4)?,
+            TargetItemType: row.get(5)?,
+            TargetItemId: row.get(6)?,
+            RelationshipType: row.get(7)?,
+            Description: row.get(8)?,
+        })
+    }).map_err(|e| e.to_string())?
+    .filter_map(|r| r.ok())
+    .collect();
+
+    Ok(RecentActivityData {
+        product_context,
+        active_context,
+        progress_entries,
+        decisions,
+        system_patterns,
+        custom_data,
+        context_links,
+    })
+}
+
+/// Recent activity data structure (using String IDs for compatibility)
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct RecentActivityData {
+    pub product_context: Vec<RecentContextHistory>,
+    pub active_context: Vec<RecentContextHistory>,
+    pub progress_entries: Vec<RecentProgress>,
+    pub decisions: Vec<RecentDecision>,
+    pub system_patterns: Vec<RecentSystemPattern>,
+    pub custom_data: Vec<RecentCustomData>,
+    pub context_links: Vec<RecentContextLink>,
+}
+
+/// String-based versions for activity summary
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct RecentContextHistory {
+    pub Id: String,
+    pub WorkspaceId: String,
+    pub Timestamp: String,
+    pub Version: i64,
+    pub Content: Value,
+    pub ChangeSource: Option<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct RecentProgress {
+    pub Id: String,
+    pub WorkspaceId: String,
+    pub Timestamp: String,
+    pub Status: String,
+    pub Description: String,
+    pub ParentId: Option<String>,
+    pub CreatedAt: String,
+    pub UpdatedAt: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct RecentDecision {
+    pub Id: String,
+    pub WorkspaceId: String,
+    pub Timestamp: String,
+    pub Summary: String,
+    pub Rationale: Option<String>,
+    pub ImplementationDetails: Option<String>,
+    pub Tags: Option<String>,
+    pub CreatedAt: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct RecentSystemPattern {
+    pub Id: String,
+    pub WorkspaceId: String,
+    pub Timestamp: String,
+    pub Name: String,
+    pub Description: Option<String>,
+    pub Tags: Option<Vec<String>>,
+    pub CreatedAt: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct RecentCustomData {
+    pub Id: String,
+    pub WorkspaceId: String,
+    pub Timestamp: String,
+    pub Category: String,
+    pub Key: String,
+    pub Value: Value,
+    pub CreatedAt: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct RecentContextLink {
+    pub Id: String,
+    pub WorkspaceId: String,
+    pub Timestamp: String,
+    pub SourceItemType: String,
+    pub SourceItemId: String,
+    pub TargetItemType: String,
+    pub TargetItemId: String,
+    pub RelationshipType: String,
+    pub Description: Option<String>,
 }
 
 // ============================================================================

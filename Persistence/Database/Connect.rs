@@ -152,6 +152,76 @@ impl Connect {
             CREATE INDEX IF NOT EXISTS idx_links_source ON ContextLinks(SourceItemType, SourceItemId);
             CREATE INDEX IF NOT EXISTS idx_links_target ON ContextLinks(TargetItemType, TargetItemId);
             CREATE INDEX IF NOT EXISTS idx_links_relationship ON ContextLinks(RelationshipType);
+            
+            -- ============================================================================
+            -- Decisions Table
+            -- ============================================================================
+            
+            CREATE TABLE IF NOT EXISTS decisions (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                WorkspaceId TEXT NOT NULL,
+                Timestamp TEXT NOT NULL,
+                Summary TEXT NOT NULL,
+                Rationale TEXT,
+                ImplementationDetails TEXT,
+                Tags TEXT,
+                CreatedAt TEXT NOT NULL
+            );
+            
+            CREATE INDEX IF NOT EXISTS idx_decisions_workspace ON decisions(WorkspaceId);
+            CREATE INDEX IF NOT EXISTS idx_decisions_timestamp ON decisions(Timestamp);
+            CREATE INDEX IF NOT EXISTS idx_decisions_tags ON decisions(Tags);
+            
+            -- ============================================================================
+            -- Decision Tags Table (for tag storage)
+            -- ============================================================================
+            
+            CREATE TABLE IF NOT EXISTS DecisionTags (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                DecisionId INTEGER NOT NULL,
+                Tag TEXT NOT NULL,
+                FOREIGN KEY (DecisionId) REFERENCES decisions(Id) ON DELETE CASCADE
+            );
+            
+            CREATE INDEX IF NOT EXISTS idx_decision_tags_decision ON DecisionTags(DecisionId);
+            CREATE INDEX IF NOT EXISTS idx_decision_tags_tag ON DecisionTags(Tag);
+            
+            -- ============================================================================
+            -- Progress Parent Table (for parent-child relationships)
+            -- ============================================================================
+            
+            CREATE TABLE IF NOT EXISTS ProgressParent (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                WorkspaceId TEXT NOT NULL,
+                ChildId INTEGER NOT NULL,
+                ParentId INTEGER NOT NULL,
+                CreatedAt TEXT NOT NULL,
+                FOREIGN KEY (ChildId) REFERENCES ProgressEntries(Id) ON DELETE CASCADE,
+                FOREIGN KEY (ParentId) REFERENCES ProgressEntries(Id) ON DELETE CASCADE
+            );
+            
+            CREATE INDEX IF NOT EXISTS idx_progress_parent_child ON ProgressParent(ChildId);
+            CREATE INDEX IF NOT EXISTS idx_progress_parent_parent ON ProgressParent(ParentId);
+            
+            -- ============================================================================
+            -- Linked Items Table (for item linking - alternate storage)
+            -- ============================================================================
+            
+            CREATE TABLE IF NOT EXISTS LinkedItems (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                WorkspaceId TEXT NOT NULL,
+                Timestamp TEXT NOT NULL,
+                SourceItemType TEXT NOT NULL,
+                SourceItemId TEXT NOT NULL,
+                TargetItemType TEXT NOT NULL,
+                TargetItemId TEXT NOT NULL,
+                RelationshipType TEXT NOT NULL,
+                Description TEXT
+            );
+            
+            CREATE INDEX IF NOT EXISTS idx_linked_items_workspace ON LinkedItems(WorkspaceId);
+            CREATE INDEX IF NOT EXISTS idx_linked_items_source ON LinkedItems(SourceItemType, SourceItemId);
+            CREATE INDEX IF NOT EXISTS idx_linked_items_target ON LinkedItems(TargetItemType, TargetItemId);
             "
         ).map_err(|e: rusqlite::Error| crate::Error::Kind::Kind::Database(e.to_string()))?;
 
