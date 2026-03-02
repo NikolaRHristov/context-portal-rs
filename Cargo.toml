@@ -5,6 +5,11 @@ edition = "2021"
 description = "ConPort MCP Server - Rust rewrite"
 authors = ["Nikola Hristov"]
 license = "MIT"
+autobenches = false
+autobins = false
+autoexamples = false
+autotests = false
+default-run = "ConportMcp"
 
 [dependencies]
 tokio = { version = "1.35", features = ["full"] }
@@ -45,17 +50,15 @@ regex = "1.12"
 
 [build-dependencies]
 serde = { version = "1.0", features = ["derive"] }
-toml = { version = "0.9" }
-
-# Binary target - currently using the library
-# [[bin]]
-# name = "conport-mcp"
-# path = "Source/main.rs"
+toml = "0.9"
 
 [lib]
-crate-type = ["rlib", "cdylib"]
-name = "Library"
+name = "ConportLibrary"
 path = "Source/Library.rs"
+
+[[bin]]
+name = "ConportMcp"
+path = "Source/Binary.rs"
 
 [profile.release]
 opt-level = 3
