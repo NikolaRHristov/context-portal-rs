@@ -1,113 +1,116 @@
 // ConPort MCP Server Library
 // Rust rewrite of the Python context-portal-rs project
 
-// Error handling
-pub mod Error {
-pub mod Kind;
-pub mod Context;
-}
-
-// Configuration
-pub mod Configuration {
-pub mod CLI;
-pub mod DatabasePath;
-pub mod Environment;
-pub mod Logging;
-}
-
-// Type definitions
-pub mod Type {
-    pub mod Context;
-    pub mod Decision;
-    pub mod Progress;
-    pub mod Pattern;
-    pub mod CustomData;
-    pub mod SystemPattern;
-    pub mod History;
-    pub mod ContextLink;
-    pub mod Filter;
-    pub mod Coerce;
-    pub mod IntCoercion;
-    pub mod Schema;
-}
-
-// AI
-pub mod AI {
-pub mod Embedding {
-pub mod Generate;
-pub mod Model;
-}
-}
-
-// FileSystem
-pub mod FileSystem {
-    pub mod Workspace {
-        pub mod Detector;
-    }
-    
-    pub mod Markdown {
-        pub mod Export;
-        pub mod Import;
-    }
-}
-
-// Persistence
-pub mod Persistence {
-    pub mod Database {
-        pub mod Connect;
-        pub mod Operations;
+// Source modules - all .rs files organized in Source directory
+pub mod Source {
+    // Error handling
+    pub mod Error {
+        pub mod Kind;
+        pub mod Context;
     }
 
-    pub mod Vector {
-        pub mod Store;
-        pub mod Usearch;
+    // Configuration
+    pub mod Configuration {
+        pub mod CLI;
+        pub mod DatabasePath;
+        pub mod Environment;
+        pub mod Logging;
     }
 
-    pub mod Migration {
-        pub mod Execute;
-    }
-
-    pub mod Workspace {
-        pub mod Manager;
-    }
-    
-    pub mod Query {
-        pub mod Normalize;
+    // Type definitions
+    pub mod Type {
+        pub mod Context;
+        pub mod Decision;
+        pub mod Progress;
+        pub mod Pattern;
+        pub mod CustomData;
+        pub mod SystemPattern;
+        pub mod History;
+        pub mod ContextLink;
         pub mod Filter;
+        pub mod Coerce;
+        pub mod IntCoercion;
+        pub mod Schema;
     }
-}
 
-// HTTP
-pub mod HTTP {
-pub mod Application {
-pub mod Create;
-}
+    // AI
+    pub mod AI {
+        pub mod Embedding {
+            pub mod Generate;
+            pub mod Model;
+        }
+    }
 
-pub mod Server {
-pub mod Initialize;
-}
+    // FileSystem
+    pub mod FileSystem {
+        pub mod Workspace {
+            pub mod Detector;
+        }
 
-pub mod Protocol {
-pub mod Request;
-pub mod Response;
-}
+        pub mod Markdown {
+            pub mod Export;
+            pub mod Import;
+        }
+    }
 
-pub mod Transport {
-pub mod Stdio;
-}
+    // Persistence
+    pub mod Persistence {
+        pub mod Database {
+            pub mod Connect;
+            pub mod Operations;
+        }
 
-pub mod Handler {
-pub mod Context;
-pub mod Decision;
-pub mod Progress;
-pub mod Pattern;
-pub mod CustomData;
-pub mod CustomDataHandler;
-pub mod SystemPattern;
-pub mod Search;
-pub mod History;
-pub mod Link;
-pub mod ImportExport;
-pub mod Batch;
-}
+        pub mod Vector {
+            pub mod Store;
+            pub mod Usearch;
+        }
+
+        pub mod Migration {
+            pub mod Execute;
+        }
+
+        pub mod Workspace {
+            pub mod Manager;
+        }
+
+        pub mod Query {
+            pub mod Normalize;
+            pub mod Filter;
+        }
+    }
+
+    // HTTP
+    pub mod HTTP {
+        pub mod Application {
+            pub mod Create;
+        }
+
+        pub mod Server {
+            pub mod Initialize;
+        }
+
+        pub mod Protocol {
+            pub mod Request;
+            pub mod Response;
+        }
+
+        pub mod Transport {
+            pub mod Stdio;
+        }
+
+        pub mod Handler {
+            pub mod Context;
+            pub mod Decision;
+            pub mod Progress;
+            pub mod Pattern;
+            pub mod CustomData;
+            pub mod CustomDataHandler;
+            pub mod SystemPattern;
+            pub mod Search;
+            pub mod History;
+            pub mod Link;
+            pub mod ImportExport;
+            pub mod Batch;
+        }
+    }
 }

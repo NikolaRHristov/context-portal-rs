@@ -1,5 +1,6 @@
 // Database Operations for the ConPort MCP server
 use rusqlite::{Connection, params};
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use super::Connect::current_timestamp;
@@ -559,6 +560,172 @@ pub fn add_context_history(
 	.map_err(|e| e.to_string())?;
 
 	Ok(conn.last_insert_rowid())
+}
+
+// ============================================================================
+// Context Operations (Product and Active Context)
+// ============================================================================
+
+/// Context entity for Product/Active context
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct Context {
+	pub Id: i64,
+	pub Content: serde_json::Value,
+}
+
+impl Context {
+	/// Create context from database row
+	pub fn new(id: i64, content: serde_json::Value) -> Self {
+	    Self { Id: id, Content: content }
+	}
+}
+
+/// Arguments for updating context
+#[derive(Debug, Deserialize)]
+pub struct UpdateContextArgs {
+	pub workspace_id: Option<String>,
+	pub content: Option<serde_json::Value>,
+	pub patch_content: Option<serde_json::Value>,
+}
+
+/// Get product context (overall project goals/features/architecture)
+pub fn get_product_context(conn: &Connection) -> Result<Context, String> {
+	let content_str: String = conn
+	    .query_row("SELECT Content FROM ProductContext WHERE Id = 1", [], |row| row.get(0))
+	    .map_err(|e| e.to_string())?;
+	
+	let content: serde_json::Value = serde_json::from_str(&content_str)
+	    .unwrap_or(serde_json::Value::Object(Default::default()));
+	
+	Ok(Context::new(1, content))
+}
+
+/// Update product context - supports full content or patch_content
+pub fn update_product_context(
+	conn: &Connection,
+	workspace_id: &str,
+	args: &UpdateContextArgs,
+) -> Result<Context, String> {
+	// Get current content
+	let current_content_str: String = conn
+	    .query_row("SELECT Content FROM ProductContext WHERE Id = 1", [], |row| row.get(0))
+	    .map_err(|e| e.to_string())?;
+	
+	let mut current_content: serde_json::Value = serde_json::from_str(&current_content_str)
+	    .unwrap_or(serde_json::Value::Object(Default::default()));
+	
+	// Determine new content based on update mode
+	let new_content = if let Some(ref patch) = args.patch_content {
+	    // Patch mode: merge with existing content
+	    if let (serde_json::Value::Object(current_obj), serde_json::Value::Object(patch_obj)) =
+	        (&mut current_content, patch) {
+	        for (key, value) in patch_obj.iter() {
+	            if value == &serde_json::Value::String("__DELETE__".to_string()) {
+	                current_obj.remove(key);
+	            } else {
+	                current_obj.insert(key.clone(), value.clone());
+	            }
+	        }
+	    }
+	    current_content
+	} else if let Some(ref content) = args.content {
+	    // Full replace mode
+	    content.clone()
+	} else {
+	    // No content provided, return current
+	    current_content
+	};
+	
+	// Serialize new content to string
+	let new_content_str = serde_json::to_string(&new_content).unwrap_or_else(|_| "{}".to_string());
+	
+	// Use INSERT OR REPLACE to update
+	conn.execute(
+	    "INSERT OR REPLACE INTO ProductContext (Id, Content) VALUES (1, ?1)",
+	    params![new_content_str],
+	)
+	.map_err(|e| e.to_string())?;
+	
+	// Add to history
+	let _ = add_context_history(
+	    conn,
+	    workspace_id,
+	    "product_context",
+	    &new_content_str,
+	    Some("update_product_context"),
+	);
+	
+	Ok(Context::new(1, new_content))
+}
+
+/// Get active context (current working focus/recent changes)
+pub fn get_active_context(conn: &Connection) -> Result<Context, String> {
+	let content_str: String = conn
+	    .query_row("SELECT Content FROM ActiveContext WHERE Id = 1", [], |row| row.get(0))
+	    .map_err(|e| e.to_string())?;
+	
+	let content: serde_json::Value = serde_json::from_str(&content_str)
+	    .unwrap_or(serde_json::Value::Object(Default::default()));
+	
+	Ok(Context::new(1, content))
+}
+
+/// Update active context - supports full content or patch_content
+pub fn update_active_context(
+	conn: &Connection,
+	workspace_id: &str,
+	args: &UpdateContextArgs,
+) -> Result<Context, String> {
+	// Get current content
+	let current_content_str: String = conn
+	    .query_row("SELECT Content FROM ActiveContext WHERE Id = 1", [], |row| row.get(0))
+	    .map_err(|e| e.to_string())?;
+	
+	let mut current_content: serde_json::Value = serde_json::from_str(&current_content_str)
+	    .unwrap_or(serde_json::Value::Object(Default::default()));
+	
+	// Determine new content based on update mode
+	let new_content = if let Some(ref patch) = args.patch_content {
+	    // Patch mode: merge with existing content
+	    if let (serde_json::Value::Object(current_obj), serde_json::Value::Object(patch_obj)) =
+	        (&mut current_content, patch) {
+	        for (key, value) in patch_obj.iter() {
+	            if value == &serde_json::Value::String("__DELETE__".to_string()) {
+	                current_obj.remove(key);
+	            } else {
+	                current_obj.insert(key.clone(), value.clone());
+	            }
+	        }
+	    }
+	    current_content
+	} else if let Some(ref content) = args.content {
+	    // Full replace mode
+	    content.clone()
+	} else {
+	    // No content provided, return current
+	    current_content
+	};
+	
+	// Serialize new content to string
+	let new_content_str = serde_json::to_string(&new_content).unwrap_or_else(|_| "{}".to_string());
+	
+	// Use INSERT OR REPLACE to update
+	conn.execute(
+	    "INSERT OR REPLACE INTO ActiveContext (Id, Content) VALUES (1, ?1)",
+	    params![new_content_str],
+	)
+	.map_err(|e| e.to_string())?;
+	
+	// Add to history
+	let _ = add_context_history(
+	    conn,
+	    workspace_id,
+	    "active_context",
+	    &new_content_str,
+	    Some("update_active_context"),
+	);
+	
+	Ok(Context::new(1, new_content))
 }
 
 // ============================================================================

@@ -45,11 +45,11 @@ regex = "1.10"
 
 [lib]
 name = "context_portal_rs"
-path = "lib.rs"
+path = "Source/lib.rs"
 
 [[bin]]
 name = "conport-mcp"
-path = "main.rs"
+path = "Source/main.rs"
 
 [profile.release]
 opt-level = 3
