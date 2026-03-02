@@ -188,7 +188,7 @@ mod tests {
 			Some("initialization".to_string()),
 		);
 
-		assert!(!history.Id.is_empty());
+		assert!(history.Id > 0);
 		assert_eq!(history.Version, 1);
 		assert_eq!(history.Content, serde_json::json!({"key": "value"}));
 		assert_eq!(history.ChangeSource, Some("initialization".to_string()));

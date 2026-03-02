@@ -17,7 +17,7 @@ pub struct BatchLogItemsRequest {
 }
 
 /// Single item in a batch request
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct BatchItem {
 	#[serde(rename = "Type")]
 	pub TypeField:String,
@@ -587,7 +587,7 @@ pub fn GetTools() -> Vec<crate::HTTP::Protocol::Request::Tool> {
 							"type": "object",
 							"properties": {
 								"type": {"type": "string", "enum": ["decision", "progress_entry", "system_pattern", "custom_data"]},
-								"data": {"type": "object"}
+								"Data": {"type": "object"}
 							},
 							"required": ["type", "data"]
 						}
@@ -609,7 +609,7 @@ pub fn GetTools() -> Vec<crate::HTTP::Protocol::Request::Tool> {
 							"type": "object",
 							"properties": {
 								"type": {"type": "string", "enum": ["decision", "progress_entry", "system_pattern", "custom_data"]},
-								"data": {"type": "object"}
+								"Data": {"type": "object"}
 							},
 							"required": ["type", "data"]
 						}
@@ -631,7 +631,7 @@ pub fn GetTools() -> Vec<crate::HTTP::Protocol::Request::Tool> {
 							"type": "object",
 							"properties": {
 								"type": {"type": "string", "enum": ["decision", "progress_entry", "system_pattern", "custom_data"]},
-								"id": {"type": "string"}
+								"Id": {"type": "string"}
 							},
 							"required": ["type", "id"]
 						}
@@ -653,14 +653,14 @@ mod tests {
 
 	#[test]
 	fn test_batch_log_items_request_parsing() {
-		let Json = r#"{
-            "workspace_id": "test",
-            "items": [
-                {"type": "decision", "data": {"summary": "Test decision"}}},
-                {"type": "progress_entry", "data": {"description": "Test progress"}}
+		let json_str = r#"{
+            "WorkspaceId": "test",
+            "Items": [
+                {"Type": "decision", "Data": {"summary": "Test decision"}},
+                {"Type": "progress_entry", "Data": {"description": "Test progress"}}
             ]
         }"#;
-		let Request:BatchLogItemsRequest = serde_json::from_str(Json).unwrap();
+		let Request:BatchLogItemsRequest = serde_json::from_str(json_str).unwrap();
 		assert_eq!(Request.WorkspaceId, "test");
 		assert_eq!(Request.Items.len(), 2);
 		assert_eq!(Request.Items[0].TypeField, "decision");
@@ -668,14 +668,14 @@ mod tests {
 
 	#[test]
 	fn test_batch_delete_request_parsing() {
-		let Json = r#"{
-            "workspace_id": "test",
-            "items": [
-                {"type": "decision", "id": "dec-1"},
-                {"type": "progress_entry", "id": "prog-1"}
+		let json_str = r#"{
+            "WorkspaceId": "test",
+            "Items": [
+                {"Type": "decision", "Id": "dec-1"},
+                {"Type": "progress_entry", "Id": "prog-1"}
             ]
         }"#;
-		let Request:BatchDeleteRequest = serde_json::from_str(Json).unwrap();
+		let Request:BatchDeleteRequest = serde_json::from_str(json_str).unwrap();
 		assert_eq!(Request.WorkspaceId, "test");
 		assert_eq!(Request.Items.len(), 2);
 	}
@@ -684,8 +684,8 @@ mod tests {
 	fn test_batch_item_serialization() {
 		let Item = BatchItem { TypeField:"decision".to_string(), Data:serde_json::json!({"summary": "Test"}) };
 
-		let Json = serde_json::to_string(&Item).unwrap();
-		let Parsed:BatchItem = serde_json::from_str(&Json).unwrap();
+		let json_str = serde_json::to_string(&Item).unwrap();
+		let Parsed:BatchItem = serde_json::from_str(&json_str).unwrap();
 
 		assert_eq!(Parsed.TypeField, "decision");
 	}

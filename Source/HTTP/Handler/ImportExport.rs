@@ -3,6 +3,7 @@
 
 use std::sync::Arc;
 
+use axum::{Json, extract::State};
 use serde::{Deserialize, Serialize};
 
 use crate::HTTP::Protocol::Response::Error;
@@ -288,10 +289,10 @@ pub fn GetTools() -> Vec<crate::HTTP::Protocol::Request::Tool> {
 			InputSchema:serde_json::json!({
 				"type": "object",
 				"properties": {
-					"workspace_id": {"type": "string"},
-					"item_types": {"type": "array", "items": {"type": "string"}},
-					"output_path": {"type": "string"},
-					"include_metadata": {"type": "boolean"}
+					"WorkspaceId": {"type": "string"},
+					"ItemTypes": {"type": "array", "items": {"type": "string"}},
+					"OutputPath": {"type": "string"},
+					"IncludeMetadata": {"type": "boolean"}
 				},
 				"required": ["workspace_id", "item_types"]
 			}),
@@ -302,9 +303,9 @@ pub fn GetTools() -> Vec<crate::HTTP::Protocol::Request::Tool> {
 			InputSchema:serde_json::json!({
 				"type": "object",
 				"properties": {
-					"workspace_id": {"type": "string"},
-					"input_path": {"type": "string"},
-					"merge_strategy": {"type": "string", "enum": ["merge", "replace", "skip_existing"]},
+					"WorkspaceId": {"type": "string"},
+					"InputPath": {"type": "string"},
+					"MergeStrategy": {"type": "string", "enum": ["merge", "replace", "skip_existing"]},
 					"validate_only": {"type": "boolean"}
 				},
 				"required": ["workspace_id", "input_path"]
@@ -323,25 +324,25 @@ mod tests {
 
 	#[test]
 	fn test_export_request_parsing() {
-		let Json = r#"{
-            "workspace_id": "test",
-            "item_types": ["decision", "progress_entry"],
-            "output_path": "./export",
-            "include_metadata": true
+		let json_str = r#"{
+            "WorkspaceId": "test",
+            "ItemTypes": ["decision", "progress_entry"],
+            "OutputPath": "./export",
+            "IncludeMetadata": true
         }"#;
-		let Request:ExportMarkdownRequest = serde_json::from_str(Json).unwrap();
+		let Request:ExportMarkdownRequest = serde_json::from_str(json_str).unwrap();
 		assert_eq!(Request.WorkspaceId, "test");
 		assert_eq!(Request.ItemTypes.len(), 2);
 	}
 
 	#[test]
 	fn test_import_request_parsing() {
-		let Json = r#"{
-            "workspace_id": "test",
-            "input_path": "./import",
-            "merge_strategy": "merge"
+		let json_str = r#"{
+            "WorkspaceId": "test",
+            "InputPath": "./import",
+            "MergeStrategy": "merge"
         }"#;
-		let Request:ImportMarkdownRequest = serde_json::from_str(Json).unwrap();
+		let Request:ImportMarkdownRequest = serde_json::from_str(json_str).unwrap();
 		assert_eq!(Request.WorkspaceId, "test");
 		assert_eq!(Request.MergeStrategy, Some("merge".to_string()));
 	}
@@ -355,8 +356,8 @@ mod tests {
 			Content:"This is the decision content".to_string(),
 		};
 
-		let Json = serde_json::to_string(&Entry).unwrap();
-		let Parsed:MarkdownEntry = serde_json::from_str(&Json).unwrap();
+		let json_str = serde_json::to_string(&Entry).unwrap();
+		let Parsed:MarkdownEntry = serde_json::from_str(&json_str).unwrap();
 
 		assert_eq!(Parsed.ItemType, "decision");
 		assert_eq!(Parsed.ItemId, "dec-1");

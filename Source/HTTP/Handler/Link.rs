@@ -3,6 +3,7 @@
 
 use std::sync::Arc;
 
+use axum::{Json, extract::{State, Query}};
 use serde::{Deserialize, Serialize};
 
 use crate::{HTTP::Protocol::Response::Error, Type::ContextLink};
@@ -258,12 +259,12 @@ pub fn GetTools() -> Vec<crate::HTTP::Protocol::Request::Tool> {
 			InputSchema:serde_json::json!({
 				"type": "object",
 				"properties": {
-					"workspace_id": {"type": "string"},
-					"source_item_type": {"type": "string", "enum": ["decision", "progress_entry", "system_pattern", "custom_data", "product_context", "active_context"]},
-					"source_item_id": {"type": "string"},
-					"target_item_type": {"type": "string", "enum": ["decision", "progress_entry", "system_pattern", "custom_data", "product_context", "active_context"]},
-					"target_item_id": {"type": "string"},
-					"relationship_type": {"type": "string"},
+					"WorkspaceId": {"type": "string"},
+					"SourceItemType": {"type": "string", "enum": ["decision", "progress_entry", "system_pattern", "custom_data", "product_context", "active_context"]},
+					"SourceItemId": {"type": "string"},
+					"TargetItemType": {"type": "string", "enum": ["decision", "progress_entry", "system_pattern", "custom_data", "product_context", "active_context"]},
+					"TargetItemId": {"type": "string"},
+					"RelationshipType": {"type": "string"},
 					"description": {"type": "string"}
 				},
 				"required": ["workspace_id", "source_item_type", "source_item_id", "target_item_type", "target_item_id", "relationship_type"]
@@ -275,12 +276,12 @@ pub fn GetTools() -> Vec<crate::HTTP::Protocol::Request::Tool> {
 			InputSchema:serde_json::json!({
 				"type": "object",
 				"properties": {
-					"workspace_id": {"type": "string"},
-					"item_type": {"type": "string", "enum": ["decision", "progress_entry", "system_pattern", "custom_data", "product_context", "active_context"]},
-					"item_id": {"type": "string"},
+					"WorkspaceId": {"type": "string"},
+					"ItemType": {"type": "string", "enum": ["decision", "progress_entry", "system_pattern", "custom_data", "product_context", "active_context"]},
+					"ItemId": {"type": "string"},
 					"relationship_type_filter": {"type": "string"},
 					"linked_item_type_filter": {"type": "string"},
-					"limit": {"type": "integer"}
+					"Limit": {"type": "integer"}
 				},
 				"required": ["workspace_id", "item_type", "item_id"]
 			}),
@@ -291,11 +292,11 @@ pub fn GetTools() -> Vec<crate::HTTP::Protocol::Request::Tool> {
 			InputSchema:serde_json::json!({
 				"type": "object",
 				"properties": {
-					"workspace_id": {"type": "string"},
-					"source_item_type": {"type": "string", "enum": ["decision", "progress_entry", "system_pattern", "custom_data", "product_context", "active_context"]},
-					"source_item_id": {"type": "string"},
-					"target_item_type": {"type": "string", "enum": ["decision", "progress_entry", "system_pattern", "custom_data", "product_context", "active_context"]},
-					"target_item_id": {"type": "string"}
+					"WorkspaceId": {"type": "string"},
+					"SourceItemType": {"type": "string", "enum": ["decision", "progress_entry", "system_pattern", "custom_data", "product_context", "active_context"]},
+					"SourceItemId": {"type": "string"},
+					"TargetItemType": {"type": "string", "enum": ["decision", "progress_entry", "system_pattern", "custom_data", "product_context", "active_context"]},
+					"TargetItemId": {"type": "string"}
 				},
 				"required": ["workspace_id", "source_item_type", "source_item_id", "target_item_type", "target_item_id"]
 			}),
@@ -313,15 +314,15 @@ mod tests {
 
 	#[test]
 	fn test_link_items_request_parsing() {
-		let Json = r#"{
-            "workspace_id": "test",
-            "source_item_type": "decision",
-            "source_item_id": "dec-1",
-            "target_item_type": "progress_entry",
-            "target_item_id": "prog-1",
-            "relationship_type": "relates_to_progress"
+		let json_str = r#"{
+            "WorkspaceId": "test",
+            "SourceItemType": "decision",
+            "SourceItemId": "dec-1",
+            "TargetItemType": "progress_entry",
+            "TargetItemId": "prog-1",
+            "RelationshipType": "relates_to_progress"
         }"#;
-		let Request:LinkItemsRequest = serde_json::from_str(Json).unwrap();
+		let Request:LinkItemsRequest = serde_json::from_str(json_str).unwrap();
 		assert_eq!(Request.WorkspaceId, "test");
 		assert_eq!(Request.SourceItemType, "decision");
 		assert_eq!(Request.TargetItemType, "progress_entry");
@@ -329,28 +330,28 @@ mod tests {
 
 	#[test]
 	fn test_get_linked_items_request_parsing() {
-		let Json = r#"{
-            "workspace_id": "test",
-            "item_type": "decision",
-            "item_id": "dec-1",
-            "limit": 5
+		let json_str = r#"{
+            "WorkspaceId": "test",
+            "ItemType": "decision",
+            "ItemId": "dec-1",
+            "Limit": 5
         }"#;
-		let Request:GetLinkedItemsRequest = serde_json::from_str(Json).unwrap();
+		let Request:GetLinkedItemsRequest = serde_json::from_str(json_str).unwrap();
 		assert_eq!(Request.ItemId, "dec-1");
 		assert_eq!(Request.Limit, Some(5));
 	}
 
 	#[test]
 	fn test_prevent_self_linking() {
-		let Json = r#"{
-            "workspace_id": "test",
-            "source_item_type": "decision",
-            "source_item_id": "dec-1",
-            "target_item_type": "decision",
-            "target_item_id": "dec-1",
-            "relationship_type": "relates_to"
+		let json_str = r#"{
+            "WorkspaceId": "test",
+            "SourceItemType": "decision",
+            "SourceItemId": "dec-1",
+            "TargetItemType": "decision",
+            "TargetItemId": "dec-1",
+            "RelationshipType": "relates_to"
         }"#;
-		let Request:LinkItemsRequest = serde_json::from_str(Json).unwrap();
+		let Request:LinkItemsRequest = serde_json::from_str(json_str).unwrap();
 		// Validation happens in Execute, not parsing
 	}
 
@@ -365,15 +366,15 @@ mod tests {
 	) -> Result<Json<LinkItemsResponse>, crate::Error::Kind::Kind> {
 		Ok(Json(LinkItemsResponse {
 			Link:ContextLink::LinkResponse {
-				Id:uuid::Uuid::new_v4().to_string(),
-				WorkspaceId:payload.WorkspaceId,
-				SourceItemType:payload.SourceItemType,
-				SourceItemId:payload.SourceItemId,
-				TargetItemType:payload.TargetItemType,
-				TargetItemId:payload.TargetItemId,
-				RelationshipType:payload.RelationshipType,
-				Description:payload.Description,
-				CreatedAt:chrono::Utc::now().to_rfc3339(),
+			    id:uuid::Uuid::new_v4().to_string(),
+			    workspace_id:payload.WorkspaceId,
+			    source_item_type:payload.SourceItemType,
+			    source_item_id:payload.SourceItemId,
+			    target_item_type:payload.TargetItemType,
+			    target_item_id:payload.TargetItemId,
+			    relationship_type:payload.RelationshipType,
+			    description:payload.Description,
+			    timestamp:chrono::Utc::now().to_rfc3339(),
 			},
 			Message:"Link created successfully".to_string(),
 		}))

@@ -12,45 +12,45 @@ autotests = false
 default-run = "ConportMcp"
 
 [dependencies]
-tokio = { version = "1.35", features = ["full"] }
-axum = "0.7"
-rusqlite = { version = "0.31", features = ["bundled"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-thiserror = "1.0"
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-tracing-appender = "0.2"
-clap = { version = "4.4", features = ["derive"] }
-chrono = { version = "0.4", features = ["serde"] }
-dirs = "5.0"
-uuid = { version = "1.6", features = ["v4", "serde"] }
+tokio = { version = "1.49", features = ["full"] }
+axum = "0.8.8"
+rusqlite = { version = "0.38.0", features = ["bundled"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+thiserror = "2.0.18"
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
+tracing-appender = "0.2.4"
+clap = { version = "4.5.60", features = ["derive"] }
+chrono = { version = "0.4.44", features = ["serde"] }
+dirs = "6.0.0"
+uuid = { version = "1.21.0", features = ["v4", "serde"] }
 
 # ONNX Runtime for embeddings
 ort = "2.0.0-rc.11"
 
 # Tokenizers for text preprocessing
-tokenizers = "0.15"
+tokenizers = "0.22.2"
 
 # USearch for vector similarity search
-usearch = "0.10"
+usearch = "2.24.0"
 
 # C++ bindings for USearch
-cxx = "1.0"
+cxx = "1.0.194"
 
 # Async runtime utilities
-once_cell = "1.19"
-parking_lot = "0.12"
+once_cell = "1.21.3"
+parking_lot = "0.12.5"
 
 # YAML serialization
-serde_yaml = "0.9"
+serde_yaml = "0.9.34-deprecated"
 
 # Regex for text processing
-regex = "1.12"
+regex = "1.12.3"
 
 [build-dependencies]
-serde = { version = "1.0", features = ["derive"] }
-toml = "0.9"
+serde = { version = "1.0.228", features = ["derive"] }
+toml = "0.9.8"
 
 [lib]
 name = "ConportLibrary"

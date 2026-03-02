@@ -14,13 +14,13 @@ use crate::{HTTP::Protocol::Response::Error, Persistence::Database::Operations a
 /// Request for getting item history
 #[derive(Debug, Deserialize)]
 pub struct GetItemHistoryRequest {
-	pub WorkspaceId:String,
-	#[serde(rename = "Type")]
-	pub TypeField:String,
-	pub Limit:Option<usize>,
-	pub BeforeTimestamp:Option<String>,
-	pub AfterTimestamp:Option<String>,
-	pub Version:Option<i64>,
+    pub WorkspaceId:String,
+    #[serde(rename = "type")]
+    pub TypeField:String,
+    pub Limit:Option<usize>,
+    pub BeforeTimestamp:Option<String>,
+    pub AfterTimestamp:Option<String>,
+    pub Version:Option<i64>,
 }
 
 /// Response for getting item history
@@ -34,10 +34,10 @@ pub struct GetItemHistoryResponse {
 /// Request for getting recent activity
 #[derive(Debug, Deserialize)]
 pub struct GetRecentActivityRequest {
-	pub WorkspaceId:String,
-	pub HoursAgo:Option<i64>,
-	pub LimitPerType:Option<usize>,
-	pub ItemTypes:Option<Vec<String>>,
+    pub WorkspaceId:String,
+    pub HoursAgo:Option<i64>,
+    pub LimitPerType:Option<usize>,
+    pub ItemTypes:Option<Vec<String>>,
 }
 
 /// Response for getting recent activity
@@ -237,27 +237,27 @@ mod tests {
 
 	#[test]
 	fn test_get_item_history_request_parsing() {
-		let Json = r#"{"workspace_id": "test", "type": "product_context", "limit": 5}"#;
-		let Request:GetItemHistoryRequest = serde_json::from_str(Json).unwrap();
-		assert_eq!(Request.WorkspaceId, "test");
-		assert_eq!(Request.TypeField, "product_context");
-		assert_eq!(Request.Limit, Some(5));
+	    let json_str = r#"{"WorkspaceId": "test", "type": "product_context", "Limit": 5}"#;
+	    let Request:GetItemHistoryRequest = serde_json::from_str(json_str).unwrap();
+	    assert_eq!(Request.WorkspaceId, "test");
+	    assert_eq!(Request.TypeField, "product_context");
+	    assert_eq!(Request.Limit, Some(5));
 	}
 
 	#[test]
 	fn test_get_recent_activity_request_parsing() {
-		let Json = r#"{"workspace_id": "test", "hours_ago": 48}"#;
-		let Request:GetRecentActivityRequest = serde_json::from_str(Json).unwrap();
-		assert_eq!(Request.WorkspaceId, "test");
-		assert_eq!(Request.HoursAgo, Some(48));
+	    let json_str = r#"{"WorkspaceId": "test", "HoursAgo": 48}"#;
+	    let Request:GetRecentActivityRequest = serde_json::from_str(json_str).unwrap();
+	    assert_eq!(Request.WorkspaceId, "test");
+	    assert_eq!(Request.HoursAgo, Some(48));
 	}
 
 	#[test]
 	fn test_invalid_item_type() {
-		let Json = r#"{"workspace_id": "test", "type": "invalid"}"#;
-		let Result:Result<GetItemHistoryRequest, _> = serde_json::from_str(Json);
-		// Should parse but validation happens in Execute
-		assert!(Result.is_ok());
+	    let json_str = r#"{"WorkspaceId": "test", "type": "invalid"}"#;
+	    let Result:Result<GetItemHistoryRequest, _> = serde_json::from_str(json_str);
+	    // Should parse but validation happens in Execute
+	    assert!(Result.is_ok());
 	}
 }
 

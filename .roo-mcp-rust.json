@@ -1,0 +1,51 @@
+{
+  "mcpServers": {
+    "conport-rust": {
+      "command": "cargo",
+      "args": [
+        "run",
+        "--",
+        "--mode",
+        "stdio",
+        "--log-file",
+        "./logs/conport.log",
+        "--log-level",
+        "INFO"
+      ],
+      "cwd": "/Volumes/CORSAIR/Developer/macOS/Application/NikolaRHristov/context-portal-rs",
+      "disabled": false,
+      "alwaysAllow": [
+        "get_workspace_detection_info",
+        "semantic_search_conport",
+        "get_recent_activity_summary",
+        "get_conport_schema",
+        "delete_system_pattern_by_id",
+        "delete_decision_by_id",
+        "get_item_history",
+        "batch_log_items",
+        "search_custom_data_value_fts",
+        "get_linked_items",
+        "link_conport_items",
+        "import_markdown_to_conport",
+        "export_conport_to_markdown",
+        "search_project_glossary_fts",
+        "delete_custom_data",
+        "get_custom_data",
+        "get_system_patterns",
+        "log_custom_data",
+        "log_system_pattern",
+        "delete_progress_by_id",
+        "update_progress",
+        "get_progress",
+        "log_progress",
+        "search_decisions_fts",
+        "get_decisions",
+        "log_decision",
+        "update_active_context",
+        "get_active_context",
+        "update_product_context",
+        "get_product_context"
+      ]
+    }
+  }
+}

@@ -3,16 +3,15 @@
 
 use std::{collections::HashMap, sync::Arc};
 
-use cxx::UniquePtr;
 use parking_lot::RwLock;
-use usearch::ffi::{Index, new_cos};
+use usearch::{Index, ffi};
 
 use crate::Error::Kind::Kind;
 
 /// USearch index wrapper for a single workspace
 pub struct WorkspaceIndex {
-	/// USearch index (using UniquePtr)
-	pub Index:UniquePtr<Index>,
+    /// USearch index
+    pub Index:Index,
 	/// Map of vector IDs to metadata
 	pub Metadata:HashMap<usize, VectorMetadata>,
 }
@@ -69,16 +68,15 @@ impl Store {
 			}
 		}
 
-		// Create new index using the correct usearch 0.10 API
-		let Quantization = "f32";
-		let Index = new_cos(
-			self.Dimension,
-			Quantization,
-			0,  // connectivity (0 = auto)
-			16, // expansion_add
-			16, // expansion_search
-		)
-		.expect("Failed to create USearch index");
+		// Create new index using usearch 2.x API
+		let mut Options = ffi::IndexOptions::default();
+		Options.dimensions = self.Dimension;
+		Options.metric = ffi::MetricKind::Cos;
+		Options.quantization = ffi::ScalarKind::F32;
+		Options.expansion_add = 16;
+		Options.expansion_search = 16;
+		let Index = Index::new(&Options)
+		    .expect("Failed to create USearch index");
 
 		let WorkspaceIndex = Arc::new(RwLock::new(WorkspaceIndex { Index, Metadata:HashMap::new() }));
 
@@ -106,7 +104,7 @@ impl Store {
 
 		// Add vector to USearch index
 		// USearch uses u32 labels internally
-		let Key = Guard.Metadata.len() as u32;
+		let Key = Guard.Metadata.len() as u64;
 		Guard
 			.Index
 			.add(Key, Embedding)
@@ -153,10 +151,10 @@ impl Store {
 			.search(Query, Limit)
 			.map_err(|e| Kind::VectorStore(format!("Search failed: {}", e)))?;
 
-		let SearchResults:Vec<SearchResult> = (0..Results.count)
+		let SearchResults:Vec<SearchResult> = (0..Results.keys.len())
 			.filter_map(|i| {
-				let Key = Results.labels[i] as usize;
-				Guard.Metadata.get(&Key).map(|Metadata| {
+				let Key = Results.keys[i];
+				Guard.Metadata.get(&(Key as usize)).map(|Metadata| {
 					SearchResult {
 						Id:Metadata.Id.clone(),
 						Score:Results.distances[i],
@@ -228,8 +226,13 @@ impl Store {
 		let mut Mutex = Index.write();
 
 		// Recreate the index
-		let Quantization = "f32";
-		let NewIndex = new_cos(self.Dimension, Quantization, 0, 16, 16).expect("Failed to create USearch index");
+		let mut Options = ffi::IndexOptions::default();
+		Options.dimensions = self.Dimension;
+		Options.metric = ffi::MetricKind::Cos;
+		Options.quantization = ffi::ScalarKind::F32;
+		Options.expansion_add = 16;
+		Options.expansion_search = 16;
+		let NewIndex = Index::new(&Options).expect("Failed to create USearch index");
 
 		Mutex.Index = NewIndex;
 		Mutex.Metadata.clear();
@@ -243,9 +246,14 @@ impl Store {
 		let mut Indexes = self.Indexes.write();
 		for (_, Index) in Indexes.iter_mut() {
 			let mut Mutex = Index.write();
-			let Quantization = "f32";
-			if let Ok(NewIndex) = new_cos(self.Dimension, Quantization, 0, 16, 16) {
-				Mutex.Index = NewIndex;
+			let mut Options = ffi::IndexOptions::default();
+			Options.dimensions = self.Dimension;
+			Options.metric = ffi::MetricKind::Cos;
+			Options.quantization = ffi::ScalarKind::F32;
+			Options.expansion_add = 16;
+			Options.expansion_search = 16;
+			if let Ok(NewIndex) = Index::new(&Options) {
+			    Mutex.Index = NewIndex;
 			}
 			Mutex.Metadata.clear();
 		}
@@ -267,9 +275,14 @@ impl Store {
 		let mut Indexes = self.Indexes.write();
 		if let Some(Index) = Indexes.remove(WorkspaceId) {
 			let mut Mutex = Index.write();
-			let Quantization = "f32";
-			if let Ok(NewIndex) = new_cos(self.Dimension, Quantization, 0, 16, 16) {
-				Mutex.Index = NewIndex;
+			let mut Options = ffi::IndexOptions::default();
+			Options.dimensions = self.Dimension;
+			Options.metric = ffi::MetricKind::Cos;
+			Options.quantization = ffi::ScalarKind::F32;
+			Options.expansion_add = 16;
+			Options.expansion_search = 16;
+			if let Ok(NewIndex) = Index::new(&Options) {
+			    Mutex.Index = NewIndex;
 			}
 			Mutex.Metadata.clear();
 			tracing::info!("Removed workspace index: {}", WorkspaceId);

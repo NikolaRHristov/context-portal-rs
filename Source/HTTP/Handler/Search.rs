@@ -433,10 +433,10 @@ pub fn GetTools() -> Vec<crate::HTTP::Protocol::Request::Tool> {
 			InputSchema:serde_json::json!({
 				"type": "object",
 				"properties": {
-					"query": {"type": "string"},
-					"limit": {"type": "integer", "minimum": 1, "maximum": 100},
-					"threshold": {"type": "number", "minimum": 0, "maximum": 1},
-					"workspace_id": {"type": "string"}
+					"Query": {"type": "string"},
+					"Limit": {"type": "integer", "minimum": 1, "maximum": 100},
+					"Threshold": {"type": "number", "minimum": 0, "maximum": 1},
+					"WorkspaceId": {"type": "string"}
 				},
 				"required": ["query"]
 			}),
@@ -447,10 +447,10 @@ pub fn GetTools() -> Vec<crate::HTTP::Protocol::Request::Tool> {
 			InputSchema:serde_json::json!({
 				"type": "object",
 				"properties": {
-					"query": {"type": "string"},
-					"limit": {"type": "integer", "minimum": 1, "maximum": 100},
-					"threshold": {"type": "number", "minimum": 0, "maximum": 1},
-					"workspace_id": {"type": "string"}
+					"Query": {"type": "string"},
+					"Limit": {"type": "integer", "minimum": 1, "maximum": 100},
+					"Threshold": {"type": "number", "minimum": 0, "maximum": 1},
+					"WorkspaceId": {"type": "string"}
 				},
 				"required": ["query"]
 			}),
@@ -461,26 +461,26 @@ pub fn GetTools() -> Vec<crate::HTTP::Protocol::Request::Tool> {
 			InputSchema:serde_json::json!({
 				"type": "object",
 				"properties": {
-					"query": {"type": "string"},
-					"workspace_id": {"type": "string"},
-					"limit": {"type": "integer", "minimum": 1, "maximum": 100},
-					"threshold": {"type": "number", "minimum": 0, "maximum": 1},
-					"filter_item_types": {
+					"Query": {"type": "string"},
+					"WorkspaceId": {"type": "string"},
+					"Limit": {"type": "integer", "minimum": 1, "maximum": 100},
+					"Threshold": {"type": "number", "minimum": 0, "maximum": 1},
+					"FilterItemTypes": {
 						"type": "array",
 						"items": {"type": "string", "enum": ["decision", "progress_entry", "system_pattern", "custom_data"]},
 						"description": "Filter results by item types"
 					},
-					"filter_tags_include_any": {
+					"FilterTagsIncludeAny": {
 						"type": "array",
 						"items": {"type": "string"},
 						"description": "Return items that have ANY of these tags"
 					},
-					"filter_tags_include_all": {
+					"FilterTagsIncludeAll": {
 						"type": "array",
 						"items": {"type": "string"},
 						"description": "Return items that have ALL of these tags"
 					},
-					"filter_custom_data_categories": {
+					"FilterCustomDataCategories": {
 						"type": "array",
 						"items": {"type": "string"},
 						"description": "Filter custom data by categories"
@@ -499,14 +499,14 @@ mod tests {
 	#[test]
 	fn test_semantic_search_request_parsing() {
 		let json = r#"{
-            "query": "test search",
-            "workspace_id": "test-workspace",
-            "limit": 20,
-            "threshold": 0.5,
-            "filter_item_types": ["decision", "progress_entry"],
-            "filter_tags_include_any": ["important", "urgent"],
-            "filter_tags_include_all": ["reviewed"],
-            "filter_custom_data_categories": ["config", "settings"]
+            "Query": "test search",
+            "WorkspaceId": "test-workspace",
+            "Limit": 20,
+            "Threshold": 0.5,
+            "FilterItemTypes": ["decision", "progress_entry"],
+            "FilterTagsIncludeAny": ["important", "urgent"],
+            "FilterTagsIncludeAll": ["reviewed"],
+            "FilterCustomDataCategories": ["config", "settings"]
         }"#;
 
 		let request:SemanticSearchRequest = serde_json::from_str(json).unwrap();
@@ -523,8 +523,8 @@ mod tests {
 	#[test]
 	fn test_semantic_search_request_defaults() {
 		let json = r#"{
-            "query": "test",
-            "workspace_id": "test"
+            "Query": "test",
+            "WorkspaceId": "test"
         }"#;
 
 		let request:SemanticSearchRequest = serde_json::from_str(json).unwrap();
