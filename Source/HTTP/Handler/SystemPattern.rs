@@ -5,7 +5,6 @@ use axum::{
 	Json,
 	extract::{Path, Query, State},
 };
-use serde::Deserialize;
 
 use crate::{
 	Persistence::Database::Operations as DbOps,
@@ -13,7 +12,6 @@ use crate::{
 		DeleteSystemPatternByIdArgs,
 		GetSystemPatternsArgs,
 		LogSystemPatternArgs,
-		SystemPattern,
 		SystemPatternResponse,
 	},
 };
@@ -81,7 +79,7 @@ pub async fn Create(
 /// Delete a system pattern by ID
 pub async fn Delete(
 	State(state):State<Arc<crate::Persistence::Database::Connect::Connect>>,
-	Path(pattern_id):Path<i64>,
+	Path(_pattern_id):Path<i64>,
 	Query(args):Query<DeleteSystemPatternByIdArgs>,
 ) -> Result<Json<DeleteResponse>, crate::Error::Kind::Kind> {
 	// Validate input

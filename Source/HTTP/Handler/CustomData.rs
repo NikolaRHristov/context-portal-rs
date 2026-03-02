@@ -3,19 +3,13 @@ use std::sync::Arc;
 
 use axum::{
 	Json,
-	extract::{Path, Query, State},
+	extract::{Query, State},
 };
 use serde::{Deserialize, Serialize};
 
 use crate::{
 	Persistence::Database::Operations as DbOps,
-	Type::CustomData::{
-		CustomData,
-		CustomDataResponse as CustomDataResp,
-		DeleteCustomDataArgs,
-		GetCustomDataArgs,
-		LogCustomDataArgs,
-	},
+	Type::CustomData::{CustomData, GetCustomDataArgs, LogCustomDataArgs},
 };
 
 /// Query args for custom data endpoints
@@ -178,7 +172,7 @@ impl HandleSetCustomData {
 		DbState:&Arc<crate::Persistence::Database::Connect::Connect>,
 		Payload:SetCustomDataRequest,
 	) -> Result<CustomDataResponse, Error> {
-		let conn = DbState.Connection.lock().map_err(|e| Error::Database(e.to_string()))?;
+		let conn = DbState.Connection.lock().map_err(|e| Error::DatabaseError(&e.to_string()))?;
 
 		let args = LogCustomDataArgs {
 			workspace_id:Payload.workspace_id,
@@ -187,7 +181,7 @@ impl HandleSetCustomData {
 			value:Payload.value,
 		};
 
-		let entry = DbOps::log_custom_data(&conn, &args).map_err(|e| Error::Database(e))?;
+		let entry = DbOps::log_custom_data(&conn, &args).map_err(|e| Error::DatabaseError(&e))?;
 
 		Ok(CustomDataResponse::from(entry))
 	}
@@ -201,7 +195,7 @@ impl HandleGetCustomData {
 		DbState:&Arc<crate::Persistence::Database::Connect::Connect>,
 		Payload:GetCustomDataRequest,
 	) -> Result<CustomDataResponse, Error> {
-		let conn = DbState.Connection.lock().map_err(|e| Error::Database(e.to_string()))?;
+		let conn = DbState.Connection.lock().map_err(|e| Error::DatabaseError(&e.to_string()))?;
 
 		let args = GetCustomDataArgs {
 			workspace_id:Payload.workspace_id,
@@ -209,7 +203,7 @@ impl HandleGetCustomData {
 			key:Some(Payload.key),
 		};
 
-		let entries = DbOps::get_custom_data(&conn, &args.workspace_id, &args).map_err(|e| Error::Database(e))?;
+		let entries = DbOps::get_custom_data(&conn, &args.workspace_id, &args).map_err(|e| Error::DatabaseError(&e))?;
 
 		entries
 			.into_iter()
@@ -227,10 +221,10 @@ impl HandleDeleteCustomData {
 		DbState:&Arc<crate::Persistence::Database::Connect::Connect>,
 		Payload:GetCustomDataRequest,
 	) -> Result<(), Error> {
-		let conn = DbState.Connection.lock().map_err(|e| Error::Database(e.to_string()))?;
+		let conn = DbState.Connection.lock().map_err(|e| Error::DatabaseError(&e.to_string()))?;
 
 		let deleted = DbOps::delete_custom_data(&conn, &Payload.workspace_id, &Payload.category, &Payload.key)
-			.map_err(|e| Error::Database(e))?;
+			.map_err(|e| Error::DatabaseError(&e))?;
 
 		if deleted {
 			Ok(())

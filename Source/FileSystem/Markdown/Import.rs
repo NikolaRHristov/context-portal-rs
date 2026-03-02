@@ -98,8 +98,8 @@ pub fn ParseContext(markdown:&str, options:&ImportOptions) -> ParseResult<Parsed
 	let mut name = String::new();
 
 	// Extract metadata section
-	let metadata_re = Regex::new(r"##\s+Metadata\s*\n((?:.+\n)*)").unwrap();
-	let mut workspace_path:Option<String> = None;
+	let _metadata_re = Regex::new(r"##\s+Metadata\s*\n((?:.+\n)*)").unwrap();
+	let mut _workspace_path:Option<String> = None;
 	let mut created_at:Option<String> = None;
 	let mut updated_at:Option<String> = None;
 
@@ -116,7 +116,7 @@ pub fn ParseContext(markdown:&str, options:&ImportOptions) -> ParseResult<Parsed
 		// Check for metadata fields
 		if line.starts_with("- **Workspace**") {
 			if let Some(path) = line.split('`').nth(1) {
-				workspace_path = Some(path.to_string());
+				_workspace_path = Some(path.to_string());
 			}
 		}
 		if line.starts_with("- **Created**") {

@@ -3,10 +3,7 @@
 
 use std::sync::Arc;
 
-use axum::{
-	Json,
-	extract::{Query, State},
-};
+use axum::{Json, extract::State};
 use serde::{Deserialize, Serialize};
 
 use crate::{HTTP::Protocol::Response::Error, Type::ContextLink};

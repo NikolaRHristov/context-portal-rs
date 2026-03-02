@@ -24,6 +24,8 @@ pub struct VectorMetadata {
 	pub WorkspaceId:String,
 	pub ItemType:String,
 	pub CreatedAt:String,
+	pub Name:Option<String>,
+	pub Description:Option<String>,
 }
 
 /// Vector search result
@@ -33,6 +35,8 @@ pub struct SearchResult {
 	pub Score:f32,
 	pub ItemType:String,
 	pub WorkspaceId:String,
+	pub Name:Option<String>,
+	pub Description:Option<String>,
 }
 
 /// Vector store using USearch with per-workspace indexes
@@ -116,6 +120,8 @@ impl Store {
 				WorkspaceId:WorkspaceId.to_string(),
 				ItemType:ItemType.to_string(),
 				CreatedAt:chrono::Utc::now().to_rfc3339(),
+				Name:None,
+				Description:None,
 			},
 		);
 
@@ -155,6 +161,8 @@ impl Store {
 						Score:Results.distances[i],
 						ItemType:Metadata.ItemType.clone(),
 						WorkspaceId:Metadata.WorkspaceId.clone(),
+						Name:Metadata.Name.clone(),
+						Description:Metadata.Description.clone(),
 					}
 				})
 			})
@@ -166,7 +174,7 @@ impl Store {
 	/// Delete a vector from the store
 	pub fn Delete(&self, WorkspaceId:&str, Id:&str) -> Result<(), Kind> {
 		let Index = self.GetOrCreateIndex(WorkspaceId);
-		let Mutex = Index.write();
+		let mut Mutex = Index.write();
 
 		// Find the key with matching ID
 		let Key = Mutex.Metadata.iter().find(|(_, m)| m.Id == Id).map(|(k, _)| *k);
@@ -186,7 +194,7 @@ impl Store {
 		let Guard = Index.read();
 
 		// Find the key with matching ID
-		let Key = Guard
+		let _Key = Guard
 			.Metadata
 			.iter()
 			.find(|(_, m)| m.Id == Id)
@@ -216,7 +224,7 @@ impl Store {
 	/// Clear all vectors for a workspace
 	pub fn Clear(&self, WorkspaceId:&str) -> Result<(), Kind> {
 		let Index = self.GetOrCreateIndex(WorkspaceId);
-		let Mutex = Index.write();
+		let mut Mutex = Index.write();
 
 		// Recreate the index
 		let Quantization = "f32";
@@ -233,7 +241,7 @@ impl Store {
 	pub fn ClearAll(&self) {
 		let mut Indexes = self.Indexes.write();
 		for (_, Index) in Indexes.iter_mut() {
-			let Mutex = Index.write();
+			let mut Mutex = Index.write();
 			let Quantization = "f32";
 			if let Ok(NewIndex) = new_cos(self.Dimension, Quantization, 0, 16, 16) {
 				Mutex.Index = NewIndex;
@@ -257,7 +265,7 @@ impl Store {
 	pub fn RemoveWorkspace(&self, WorkspaceId:&str) -> Result<(), Kind> {
 		let mut Indexes = self.Indexes.write();
 		if let Some(Index) = Indexes.remove(WorkspaceId) {
-			let Mutex = Index.write();
+			let mut Mutex = Index.write();
 			let Quantization = "f32";
 			if let Ok(NewIndex) = new_cos(self.Dimension, Quantization, 0, 16, 16) {
 				Mutex.Index = NewIndex;

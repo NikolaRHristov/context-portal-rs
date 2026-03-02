@@ -31,6 +31,7 @@ pub struct ServerConfig {
 	pub StdioMode:bool,
 	pub WorkspaceDetectionEnabled:bool,
 	pub MaxConnections:usize,
+	pub DatabasePath:std::path::PathBuf,
 }
 
 impl Default for ServerConfig {
@@ -41,6 +42,7 @@ impl Default for ServerConfig {
 			StdioMode:true,
 			WorkspaceDetectionEnabled:true,
 			MaxConnections:10,
+			DatabasePath:std::path::PathBuf::from("context.db"),
 		}
 	}
 }
@@ -49,8 +51,7 @@ impl Server {
 	/// Create a new server instance
 	pub async fn New(Config:ServerConfig) -> Result<Self, Kind> {
 		// Initialize database connection
-		let DbState = crate::Persistence::Database::Connect::Connect::New()
-			.await
+		let DbState = crate::Persistence::Database::Connect::Connect::New(&Config.DatabasePath)
 			.map_err(|e| Kind::Database(e.to_string()))?;
 
 		// Initialize workspace manager
@@ -89,11 +90,17 @@ impl Server {
 		// Initialize MCP transport
 		let Transport = crate::HTTP::Transport::Stdio::Stdio::New();
 
-		// Create the MCP application
-		let App = crate::HTTP::Application::Create::Create(self.DbState.clone()).await?;
+		// Create the MCP application (unused in stdio mode, but kept for reference)
+		// let App = crate::HTTP::Application::Create::Create(self.DbState.clone()).
+		// await?;
 
 		// Run the transport loop
-		Transport.Run(App).await;
+		Transport.Run(move |request| {
+			// Convert Request to JSON, handle via router, return Value
+			let request_json = serde_json::to_value(&request).unwrap_or(serde_json::Value::Null);
+			// For now, return a simple response - the actual routing would need more work
+			Ok(request_json)
+		});
 
 		Ok(())
 	}

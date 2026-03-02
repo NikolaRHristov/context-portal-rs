@@ -7,8 +7,6 @@ use std::{
 	path::{Path, PathBuf},
 };
 
-use tracing::{debug, info, warn};
-
 /// Workspace indicator constants matching Python implementation
 pub mod indicators {
 	/// Strong indicators that are most reliable for workspace detection
@@ -154,7 +152,7 @@ impl Detector {
 			}
 
 			match path.parent() {
-				Some(parent) => path = parent.clone(),
+				Some(parent) => path = parent.clone().to_path_buf(),
 				None => break,
 			}
 			depth += 1;
@@ -178,7 +176,7 @@ impl Detector {
 			}
 
 			match path.parent() {
-				Some(parent) => path = parent.clone(),
+				Some(parent) => path = parent.clone().to_path_buf(),
 				None => break,
 			}
 			depth += 1;
@@ -200,7 +198,7 @@ impl Detector {
 			}
 
 			match path.parent() {
-				Some(parent) => path = parent.clone(),
+				Some(parent) => path = parent.clone().to_path_buf(),
 				None => break,
 			}
 			depth += 1;

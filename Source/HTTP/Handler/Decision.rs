@@ -9,15 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
 	Persistence::Database::Operations as DbOps,
-	Type::Decision::{
-		Decision,
-		DecisionResponse as DecisionResp,
-		DeleteDecisionArgs,
-		GetDecisionsArgs,
-		LogDecisionArgs,
-		SearchDecisionsArgs,
-		UpdateDecisionArgs,
-	},
+	Type::Decision::{Decision, GetDecisionsArgs, LogDecisionArgs, UpdateDecisionArgs},
 };
 
 /// Query args for decision endpoints

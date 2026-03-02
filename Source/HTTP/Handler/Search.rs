@@ -84,7 +84,7 @@ pub async fn SearchDecisions(
 	State(_state):State<Arc<Connect>>,
 	Json(payload):Json<SearchDecisionsRequest>,
 ) -> Result<Json<SearchResponse>, crate::Error::Kind::Kind> {
-	let limit = payload.Limit.unwrap_or(10);
+	let _limit = payload.Limit.unwrap_or(10);
 	let _threshold = payload.Threshold.unwrap_or(0.0);
 
 	// Generate embedding for the query
@@ -102,7 +102,7 @@ pub async fn SearchContext(
 	State(_state):State<Arc<Connect>>,
 	Json(payload):Json<SearchContextRequest>,
 ) -> Result<Json<SearchResponse>, crate::Error::Kind::Kind> {
-	let limit = payload.Limit.unwrap_or(10);
+	let _limit = payload.Limit.unwrap_or(10);
 	let _threshold = payload.Threshold.unwrap_or(0.0);
 
 	// Generate embedding for the query
@@ -199,12 +199,12 @@ impl HandleSemanticSearch {
 		let Embedding = Self::GenerateEmbedding(EmbeddingModel, &Payload.Query).await?;
 
 		let limit = Payload.Limit.unwrap_or(10);
-		let threshold = Payload.Threshold.unwrap_or(0.0);
+		let _threshold = Payload.Threshold.unwrap_or(0.0);
 
 		// Search vector store
 		let vector_results = {
 			let mutex = VectorStore.lock().await;
-			match mutex.Search(&Payload.WorkspaceId, &Embedding, limit * 2, threshold) {
+			match mutex.Search(&Payload.WorkspaceId, &Embedding, limit * 2) {
 				Ok(results) => results,
 				Err(e) => {
 					return Err(Error::WithMessage(
@@ -276,8 +276,8 @@ impl HandleSemanticSearch {
 			results.push(SearchResult {
 				Id:item.Id,
 				TypeField:item.ItemType,
-				Name:item.Name,
-				Description:item.Description,
+				Name:item.Name.unwrap_or_default(),
+				Description:item.Description.unwrap_or_default(),
 				Score:item.Score,
 				Metadata:metadata,
 			});

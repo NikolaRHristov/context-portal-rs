@@ -5,18 +5,10 @@ use axum::{
 	Json,
 	extract::{Path, Query, State},
 };
-use serde::Deserialize;
 
 use crate::{
 	Persistence::Database::Operations as DbOps,
-	Type::Progress::{
-		DeleteProgressByIdArgs,
-		GetProgressArgs,
-		LogProgressArgs,
-		Progress,
-		ProgressResponse,
-		UpdateProgressArgs,
-	},
+	Type::Progress::{DeleteProgressByIdArgs, GetProgressArgs, LogProgressArgs, ProgressResponse, UpdateProgressArgs},
 };
 
 /// List progress entries with optional filters
@@ -29,8 +21,8 @@ pub async fn List(
 		.lock()
 		.map_err(|e| crate::Error::Kind::Kind::Database(e.to_string()))?;
 
-	let progress_entries =
-		DbOps::get_progress(&conn, &args.workspace_id, &args).map_err(|e| crate::Error::Kind::Kind::Database(e))?;
+	let progress_entries = DbOps::get_progress(&conn, &args.workspace_id.clone(), &args)
+		.map_err(|e| crate::Error::Kind::Kind::Database(e))?;
 
 	Ok(Json(
 		progress_entries
@@ -65,7 +57,7 @@ pub async fn Get(
 	// Get all progress and filter by ID
 	let progress_entries = DbOps::get_progress(
 		&conn,
-		&args.workspace_id,
+		&args.workspace_id.clone(),
 		&GetProgressArgs {
 			workspace_id:args.workspace_id,
 			status_filter:None,
@@ -156,8 +148,8 @@ pub async fn Update(
 		.lock()
 		.map_err(|e| crate::Error::Kind::Kind::Database(e.to_string()))?;
 
-	let updated =
-		DbOps::update_progress(&conn, &args.workspace_id, &args).map_err(|e| crate::Error::Kind::Kind::Database(e))?;
+	let updated = DbOps::update_progress(&conn, &args.workspace_id.clone(), &args)
+		.map_err(|e| crate::Error::Kind::Kind::Database(e))?;
 
 	if updated {
 		Ok(Json(UpdateResponse {
@@ -175,7 +167,7 @@ pub async fn Update(
 /// Delete a progress entry by ID
 pub async fn Delete(
 	State(state):State<Arc<crate::Persistence::Database::Connect::Connect>>,
-	Path(progress_id):Path<i64>,
+	Path(_progress_id):Path<i64>,
 	Query(args):Query<DeleteProgressByIdArgs>,
 ) -> Result<Json<DeleteResponse>, crate::Error::Kind::Kind> {
 	// Validate input
@@ -186,7 +178,7 @@ pub async fn Delete(
 		.lock()
 		.map_err(|e| crate::Error::Kind::Kind::Database(e.to_string()))?;
 
-	let deleted = DbOps::delete_progress(&conn, &args.workspace_id, args.progress_id)
+	let deleted = DbOps::delete_progress(&conn, &args.workspace_id.clone(), args.progress_id)
 		.map_err(|e| crate::Error::Kind::Kind::Database(e))?;
 
 	if deleted {

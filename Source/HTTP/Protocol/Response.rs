@@ -17,6 +17,7 @@ pub enum ErrorCode {
 	NotFound = -32001,
 	Unauthorized = -32002,
 	InvalidInput = -32003,
+	BadRequest = -32004,
 }
 
 impl ErrorCode {
@@ -33,6 +34,7 @@ impl ErrorCode {
 			ErrorCode::NotFound => "Not found",
 			ErrorCode::Unauthorized => "Unauthorized",
 			ErrorCode::InvalidInput => "Invalid input",
+			ErrorCode::BadRequest => "Bad request",
 		}
 	}
 }

@@ -93,6 +93,7 @@ impl Kind {
 			Kind::Serialization(_) => "SERIALIZATION_ERROR",
 			Kind::NotFound(_) => "NOT_FOUND",
 			Kind::InvalidInput(_) => "INVALID_INPUT",
+			_ => "UNKNOWN_ERROR",
 		}
 		.to_string()
 	}
@@ -145,14 +146,14 @@ pub trait ResultExt<T, E> {
 }
 
 impl<T, E> ResultExt<T, E> for Result<T, E> {
-	fn with_workspace_context(self, workspace_id:impl Into<String>, operation:impl Into<String>) -> Result<T, E> {
+	fn with_workspace_context(self, _workspace_id:impl Into<String>, _operation:impl Into<String>) -> Result<T, E> {
 		// This is a marker method - actual implementation would depend on error type
 		// For now, we just return the result as-is
 		// Real implementation would wrap errors with context
 		self
 	}
 
-	fn with_error_context<F>(self, operation:impl Into<String>, f:F) -> Result<T, E>
+	fn with_error_context<F>(self, _operation:impl Into<String>, _f:F) -> Result<T, E>
 	where
 		F: FnOnce(&E) -> String, {
 		self

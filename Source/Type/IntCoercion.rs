@@ -59,9 +59,12 @@ impl<T> IntVisitor<T> {
 
 impl<'de, T> Visitor<'de> for IntVisitor<T>
 where
-	T: Deserialize<'de> + TryFrom<i64> + TryFrom<String>,
+	T: Deserialize<'de> + TryFrom<i64> + TryFrom<i32> + TryFrom<u32> + TryFrom<u64> + TryFrom<usize> + Default,
 	<T as TryFrom<i64>>::Error: fmt::Debug,
-	<T as TryFrom<String>>::Error: fmt::Debug,
+	<T as TryFrom<i32>>::Error: fmt::Debug,
+	<T as TryFrom<u32>>::Error: fmt::Debug,
+	<T as TryFrom<u64>>::Error: fmt::Debug,
+	<T as TryFrom<usize>>::Error: fmt::Debug,
 {
 	type Value = T;
 
@@ -84,8 +87,14 @@ where
 	fn visit_str<E>(self, value:&str) -> Result<Self::Value, E>
 	where
 		E: de::Error, {
+		// Parse string as integer directly
 		if is_digit_only(value) {
-			T::try_from(value.to_string()).map_err(|_| de::Error::custom("invalid integer string"))
+			// For i32/i64/u32/u64, use from_str_radix
+			let result = value.parse::<i64>().map_err(|_| de::Error::custom("invalid integer string"));
+			match result {
+				Ok(v) => T::try_from(v).map_err(|_| de::Error::custom("integer overflow")),
+				Err(e) => Err(e),
+			}
 		} else {
 			Err(de::Error::custom("string is not digit-only"))
 		}
@@ -94,8 +103,13 @@ where
 	fn visit_string<E>(self, value:String) -> Result<Self::Value, E>
 	where
 		E: de::Error, {
+		// Parse string as integer directly
 		if is_digit_only(&value) {
-			T::try_from(value).map_err(|_| de::Error::custom("invalid integer string"))
+			let result = value.parse::<i64>().map_err(|_| de::Error::custom("invalid integer string"));
+			match result {
+				Ok(v) => T::try_from(v).map_err(|_| de::Error::custom("integer overflow")),
+				Err(e) => Err(e),
+			}
 		} else {
 			Err(de::Error::custom("string is not digit-only"))
 		}

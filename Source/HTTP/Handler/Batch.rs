@@ -7,7 +7,7 @@ use axum::{Json, extract::State};
 use rusqlite::params;
 use serde::{Deserialize, Serialize};
 
-use crate::{HTTP::Protocol::Response::Error, Persistence::Database::Operations};
+use crate::HTTP::Protocol::Response::Error;
 
 /// Request for batch logging items
 #[derive(Debug, Deserialize)]
@@ -376,8 +376,8 @@ impl HandleBatchLogItemsToDatabase {
 	}
 
 	/// Store a single item based on type
-	fn StoreItem(
-	    conn:&std::sync::Mutex<rusqlite::Connection>,
+	fn StoreItem<'a>(
+		conn:&'a std::sync::MutexGuard<'a, rusqlite::Connection>,
 		WorkspaceId:&str,
 		timestamp:&str,
 		Item:&BatchItem,
@@ -392,8 +392,8 @@ impl HandleBatchLogItemsToDatabase {
 	}
 
 	/// Store a decision item
-	fn StoreDecision(
-	    conn:&std::sync::Mutex<rusqlite::Connection>,
+	fn StoreDecision<'a>(
+		conn:&'a std::sync::MutexGuard<'a, rusqlite::Connection>,
 		WorkspaceId:&str,
 		timestamp:&str,
 		Data:&serde_json::Value,
@@ -408,7 +408,7 @@ impl HandleBatchLogItemsToDatabase {
 			.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
 		let tags_json = Data.get("tags").and_then(|v| serde_json::to_string(v).ok()).unwrap_or_default();
 
-		let conn_guard = conn.lock().map_err(|e| e.to_string())?;
+		let conn_guard = conn;
 		conn_guard
 			.execute(
 				"INSERT OR REPLACE INTO Decisions (Id, WorkspaceId, Summary, Rationale, ImplementationDetails, Tags, \
@@ -429,8 +429,8 @@ impl HandleBatchLogItemsToDatabase {
 	}
 
 	/// Store a progress entry
-	fn StoreProgressEntry(
-	    conn:&std::sync::Mutex<rusqlite::Connection>,
+	fn StoreProgressEntry<'a>(
+		conn:&'a std::sync::MutexGuard<'a, rusqlite::Connection>,
 		WorkspaceId:&str,
 		timestamp:&str,
 		Data:&serde_json::Value,
@@ -444,7 +444,7 @@ impl HandleBatchLogItemsToDatabase {
 			.map(|s| s.to_string())
 			.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
 
-		let conn_guard = conn.lock().map_err(|e| e.to_string())?;
+		let conn_guard = conn;
 		conn_guard
 			.execute(
 				"INSERT INTO ProgressEntries (WorkspaceId, Timestamp, Status, Description, ParentId, CreatedAt, \
@@ -457,8 +457,8 @@ impl HandleBatchLogItemsToDatabase {
 	}
 
 	/// Store a system pattern
-	fn StoreSystemPattern(
-	    conn:&std::sync::Mutex<rusqlite::Connection>,
+	fn StoreSystemPattern<'a>(
+		conn:&'a std::sync::MutexGuard<'a, rusqlite::Connection>,
 		WorkspaceId:&str,
 		timestamp:&str,
 		Data:&serde_json::Value,
@@ -472,7 +472,7 @@ impl HandleBatchLogItemsToDatabase {
 			.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
 		let tags_json = Data.get("tags").and_then(|v| serde_json::to_string(v).ok()).unwrap_or_default();
 
-		let conn_guard = conn.lock().map_err(|e| e.to_string())?;
+		let conn_guard = conn;
 		conn_guard
 			.execute(
 				"INSERT OR REPLACE INTO SystemPatterns (WorkspaceId, Timestamp, Name, Description, Tags, CreatedAt) \
@@ -485,8 +485,8 @@ impl HandleBatchLogItemsToDatabase {
 	}
 
 	/// Store custom data
-	fn StoreCustomData(
-	    conn:&std::sync::Mutex<rusqlite::Connection>,
+	fn StoreCustomData<'a>(
+		conn:&'a std::sync::MutexGuard<'a, rusqlite::Connection>,
 		WorkspaceId:&str,
 		timestamp:&str,
 		Data:&serde_json::Value,
@@ -500,7 +500,7 @@ impl HandleBatchLogItemsToDatabase {
 			.map(|s| s.to_string())
 			.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
 
-		let conn_guard = conn.lock().map_err(|e| e.to_string())?;
+		let conn_guard = conn;
 		conn_guard
 			.execute(
 				"INSERT OR REPLACE INTO CustomData (WorkspaceId, Timestamp, Category, Key, Value, CreatedAt) VALUES \

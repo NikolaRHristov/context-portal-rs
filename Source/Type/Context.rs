@@ -75,13 +75,11 @@ impl Context {
 
 	/// Merge two JSON values (patch update)
 	fn merge_json(base:serde_json::Value, patch:serde_json::Value) -> serde_json::Value {
-		match (base, patch) {
+		match (base, patch.clone()) {
 			(serde_json::Value::Object(mut base_map), serde_json::Value::Object(patch_map)) => {
 				for (key, value) in patch_map {
-					base_map.insert(
-						key,
-						Self::merge_json(base_map.remove(&key).unwrap_or(serde_json::Value::Null), value),
-					);
+					let existing_value = base_map.remove(&key).unwrap_or(serde_json::Value::Null);
+					base_map.insert(key, Self::merge_json(existing_value, value));
 				}
 				serde_json::Value::Object(base_map)
 			},

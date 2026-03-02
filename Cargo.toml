@@ -41,15 +41,21 @@ parking_lot = "0.12"
 serde_yaml = "0.9"
 
 # Regex for text processing
-regex = "1.10"
+regex = "1.12"
+
+[build-dependencies]
+serde = { version = "1.0", features = ["derive"] }
+toml = { version = "0.9" }
+
+# Binary target - currently using the library
+# [[bin]]
+# name = "conport-mcp"
+# path = "Source/main.rs"
 
 [lib]
-name = "context_portal_rs"
-path = "Source/lib.rs"
-
-[[bin]]
-name = "conport-mcp"
-path = "Source/main.rs"
+crate-type = ["rlib", "cdylib"]
+name = "Library"
+path = "Source/Library.rs"
 
 [profile.release]
 opt-level = 3

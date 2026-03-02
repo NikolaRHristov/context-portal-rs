@@ -9,7 +9,6 @@ use axum::{
 use crate::{
 	Persistence::Database::Operations as DbOps,
 	Type::CustomData::{
-		CustomData,
 		CustomDataResponse,
 		DeleteCustomDataArgs,
 		GetCustomDataArgs,

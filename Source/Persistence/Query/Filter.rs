@@ -15,7 +15,6 @@ pub enum TagFilterMode {
 }
 
 /// Result of building a tag filter SQL query
-#[derive(Debug, Clone)]
 pub struct TagFilterSql {
 	pub where_clause:String,
 	pub params:Vec<Box<dyn rusqlite::ToSql>>,
@@ -258,14 +257,14 @@ impl FilterSqlBuilder {
 	}
 
 	/// Add sorting
-	pub fn with_sorting(self, field:&str, direction:&str) -> Self {
+	pub fn with_sorting(self, _field:&str, _direction:&str) -> Self {
 		// Note: Sorting should be added after building the WHERE clause
 		// This is handled in the build method
 		self
 	}
 
 	/// Add pagination
-	pub fn with_pagination(self, offset:Option<usize>, limit:Option<usize>) -> Self {
+	pub fn with_pagination(self, _offset:Option<usize>, _limit:Option<usize>) -> Self {
 		// Note: Pagination should be added after ORDER BY
 		// This is handled in the build method
 		self

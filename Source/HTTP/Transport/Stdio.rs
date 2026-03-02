@@ -9,7 +9,7 @@ use serde_json::Value;
 
 use crate::HTTP::Protocol::{
 	Request::{Method, Request, RequestData, RequestId},
-	Response::{Error, ErrorCode, Response},
+	Response::{Error, Response},
 };
 
 pub struct Stdio;
@@ -113,7 +113,7 @@ pub struct StdioAsync {
 
 impl StdioAsync {
 	pub fn New() -> Self {
-		let (request_tx, request_rx) = channel::<Request>();
+		let (request_tx, _request_rx) = channel::<Request>();
 		let (response_tx, response_rx) = channel::<Response>();
 
 		// Spawn the read loop in a separate thread
@@ -147,7 +147,7 @@ impl StdioAsync {
 							}
 						},
 						Err(e) => {
-							let error = Error::ParseError(&format!("JSON parse error: {}", e));
+							let _error = Error::ParseError(&format!("JSON parse error: {}", e));
 							let response =
 								Response::ParseError(RequestId::default(), &format!("JSON parse error: {}", e));
 							if let Err(e) = response_tx.send(response) {
@@ -166,7 +166,7 @@ impl StdioAsync {
 	}
 
 	pub fn ReceiveRequest(&self) -> Option<Request> {
-		self.RequestTx.as_ref().and_then(|tx| {
+		self.RequestTx.as_ref().and_then(|_tx| {
 			// This is a simplified version - in practice you'd want proper async
 			None
 		})

@@ -86,7 +86,7 @@ impl HandleUpdatePattern {
 	pub async fn Execute(
 		DbState:&Arc<crate::Persistence::Database::Connect::Connect>,
 		Id:String,
-		Payload:UpdatePatternRequest,
+		_Payload:UpdatePatternRequest,
 	) -> Result<PatternResponse, Error> {
 		let _ = DbState; // Suppress unused warning
 		// TODO: Update in database
