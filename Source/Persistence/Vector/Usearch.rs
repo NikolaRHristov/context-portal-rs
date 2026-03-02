@@ -46,6 +46,7 @@ pub struct Store {
 	/// Default embedding dimension
 	Dimension:usize,
 	/// Maximum results to return
+	#[allow(dead_code)]
 	DefaultLimit:usize,
 }
 

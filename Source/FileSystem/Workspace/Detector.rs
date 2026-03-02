@@ -152,7 +152,7 @@ impl Detector {
 			}
 
 			match path.parent() {
-				Some(parent) => path = parent.clone().to_path_buf(),
+				Some(parent) => path = parent.to_path_buf(),
 				None => break,
 			}
 			depth += 1;
@@ -176,7 +176,7 @@ impl Detector {
 			}
 
 			match path.parent() {
-				Some(parent) => path = parent.clone().to_path_buf(),
+				Some(parent) => path = parent.to_path_buf(),
 				None => break,
 			}
 			depth += 1;
@@ -198,7 +198,7 @@ impl Detector {
 			}
 
 			match path.parent() {
-				Some(parent) => path = parent.clone().to_path_buf(),
+				Some(parent) => path = parent.to_path_buf(),
 				None => break,
 			}
 			depth += 1;

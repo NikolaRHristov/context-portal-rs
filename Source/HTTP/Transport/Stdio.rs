@@ -107,8 +107,9 @@ impl Default for Stdio {
 
 // Async STDIO transport using channels
 pub struct StdioAsync {
-	RequestTx:Option<Sender<Request>>,
-	ResponseRx:Option<Receiver<Response>>,
+    RequestTx:Option<Sender<Request>>,
+    #[allow(dead_code)]
+    ResponseRx:Option<Receiver<Response>>,
 }
 
 impl StdioAsync {

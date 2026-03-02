@@ -1,6 +1,10 @@
 // ConPort MCP Server Library
 // Rust rewrite of the Python context-portal-rs project
 
+// Allow non-snake_case naming conventions to maintain compatibility with existing codebase conventions
+#![allow(non_snake_case)]
+#![allow(nonstandard_style)]
+
 // Error handling
 pub mod Error {
 	pub mod Context;
@@ -110,13 +114,4 @@ pub mod HTTP {
 		pub mod Search;
 		pub mod SystemPattern;
 	}
-}
-
-// Binary entry point for conport-mcp binary
-#[cfg(feature = "bin")]
-pub fn main() {
-	// This would normally be in a separate main.rs file
-	// For now, the lib is the primary artifact
-	println!("ConPort MCP Server Library");
-	println!("Use as a library or implement binary-specific entry point");
 }
