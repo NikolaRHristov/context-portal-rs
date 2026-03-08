@@ -85,24 +85,98 @@ impl Server {
 
 	/// Run in stdio mode for MCP protocol
 	async fn RunStdioMode(&self) -> Result<(), Kind> {
-		tracing::info!("Running in stdio mode...");
+	    use serde_json::json;
+	    
+	    tracing::info!("Running in stdio mode...");
 
-		// Initialize MCP transport
-		let Transport = crate::HTTP::Transport::Stdio::Stdio::New();
+	    // Initialize MCP transport
+	    let Transport = crate::HTTP::Transport::Stdio::Stdio::New();
 
-		// Create the MCP application (unused in stdio mode, but kept for reference)
-		// let App = crate::HTTP::Application::Create::Create(self.DbState.clone()).
-		// await?;
+	    // Clone state for the closure
+	    let DbState = self.DbState.clone();
+	    let VectorStore = self.VectorStore.clone();
+	    let WorkspaceManager = self.WorkspaceManager.clone();
+	    let EmbeddingModel = self.EmbeddingModel.clone();
 
-		// Run the transport loop
-		Transport.Run(move |request| {
-			// Convert Request to JSON, handle via router, return Value
-			let request_json = serde_json::to_value(&request).unwrap_or(serde_json::Value::Null);
-			// For now, return a simple response - the actual routing would need more work
-			Ok(request_json)
-		});
+	    // Run the transport loop with proper MCP protocol handling
+	    Transport.Run(move |request| {
+	        let method = request.Method().clone();
+	        let id = request.Id().clone();
+	        
+	        tracing::debug!("MCP request: {:?}", method);
+	        
+	        // Handle MCP protocol methods
+	        match method.as_str() {
+	            // Initialize - required for MCP protocol
+	            "initialize" => {
+	                Ok(json!({
+	                    "protocolVersion": "2024-11-05",
+	                    "capabilities": {
+	                        "tools": {},
+	                        "resources": {},
+	                        "prompts": {}
+	                    },
+	                    "serverInfo": {
+	                        "name": "ConPort MCP Server",
+	                        "version": "0.1.0"
+	                    }
+	                }))
+	            },
+	            
+	            // Tools list - return available tools
+	            "tools/list" => {
+	                // Return the tools from GetTools functions
+	                let tools = crate::HTTP::Handler::Batch::Batch::GetTools();
+	                Ok(json!({ "tools": tools }))
+	            },
+	            
+	            // Ping - health check
+	            "ping" => {
+	                Ok(json!({ "pong": true }))
+	            },
+	            
+	            // Tools/call - execute a tool
+	            "tools/call" => {
+	                // Extract tool name and arguments from request
+	                let request_value = serde_json::to_value(&request).unwrap_or(json!({}));
+	                let args = request_value.get("arguments").cloned().unwrap_or(json!({}));
+	                let name = args.get("name").and_then(|v| v.as_str()).unwrap_or("");
+	                
+	                tracing::info!("Tool call: {}", name);
+	                
+	                // Return a placeholder response
+	                Ok(json!({
+	                    "content": [{
+	                        "type": "text",
+	                        "text": format!("Tool '{}' called", name)
+	                    }]
+	                }))
+	            },
+	            
+	            // Resources/list
+	            "resources/list" => {
+	                Ok(json!({ "resources": [] }))
+	            },
+	            
+	            // Prompts/list
+	            "prompts/list" => {
+	                Ok(json!({ "prompts": [] }))
+	            },
+	            
+	            // Unknown method
+	            _ => {
+	                tracing::warn!("Unknown MCP method: {}", method);
+	                Ok(json!({
+	                    "error": {
+	                        "code": "METHOD_NOT_FOUND",
+	                        "message": format!("Unknown method: {}", method)
+	                    }
+	                }))
+	            }
+	        }
+	    });
 
-		Ok(())
+	    Ok(())
 	}
 
 	/// Run in HTTP mode

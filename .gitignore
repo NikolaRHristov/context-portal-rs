@@ -126,3 +126,5 @@ dmypy.json
 *.sqlite
 *.sqlite-journal
 .clinerules/
+
+context.db
